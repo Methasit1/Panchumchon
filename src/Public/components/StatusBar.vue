@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { STATUS_COLOR } from '@/shared/constants/colors'
+import { STATUS_LABEL } from '@/shared/constants/status'
 
 const props = defineProps({
   status: { type: String, default: '' },
@@ -8,6 +9,7 @@ const props = defineProps({
 
 // BR-15: สีมาจากสถานะโดยตรง — สถานะที่เอกสารยังไม่กำหนดสีจะไม่แสดงแถบสี
 const colorClass = computed(() => STATUS_COLOR[props.status] ?? '')
+const label = computed(() => STATUS_LABEL[props.status] ?? props.status)
 </script>
 
 <template>
@@ -18,6 +20,6 @@ const colorClass = computed(() => STATUS_COLOR[props.status] ?? '')
       :class="colorClass"
       aria-hidden="true"
     />
-    <span>{{ status }}</span>
+    <span>{{ label }}</span>
   </div>
 </template>

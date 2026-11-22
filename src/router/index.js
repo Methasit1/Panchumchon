@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { refreshAuth } from '@/Admin/store/auth'
 
 // เส้นทางจัดตามหน้าจอในข้อ 12 ของ Proposal
 const routes = [
@@ -24,7 +25,7 @@ const routes = [
     meta: { area: 'public' },
   },
 
-  // ฝั่งเจ้าหน้าที่ (ข้อ 3, F02): ต้อง Login — จะเพิ่ม navigation guard หลังยืนยันโครง Login
+  // ฝั่งเจ้าหน้าที่ (ข้อ 3, F02): ต้อง Login และต้องมี role ADMIN
   {
     path: '/admin/login',
     name: 'admin-login',
@@ -73,6 +74,17 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+// F02: ผู้ที่ไม่ได้ Login หรือไม่มีสิทธิ์ ADMIN เข้าถึงหน้าจัดการข้อมูลไม่ได้
+router.beforeEach(async (to) => {
+  if (to.meta.area !== 'admin' || to.name === 'admin-login') return true
+
+  const allowed = await refreshAuth()
+  if (!allowed) {
+    return { name: 'admin-login', query: { redirect: to.fullPath } }
+  }
+  return true
 })
 
 export default router

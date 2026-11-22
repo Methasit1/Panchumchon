@@ -1,5 +1,13 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
+import { displayName, isAdmin, logout } from '@/Admin/store/auth'
+
+const router = useRouter()
+
+async function handleLogout() {
+  await logout()
+  router.push('/public/villages')
+}
 </script>
 
 <template>
@@ -26,6 +34,17 @@ import { RouterLink, RouterView } from 'vue-router'
             ฝั่งเจ้าหน้าที่
           </RouterLink>
         </nav>
+
+        <div v-if="isAdmin" class="ml-auto flex items-center gap-3 text-sm">
+          <span class="text-slate-600">{{ displayName }}</span>
+          <button
+            type="button"
+            class="rounded border border-slate-300 px-2 py-1 hover:bg-slate-100"
+            @click="handleLogout"
+          >
+            ออกจากระบบ
+          </button>
+        </div>
       </div>
     </header>
 
