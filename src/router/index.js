@@ -61,6 +61,7 @@ const routes = [
       feature: 'F02 · หน้าเข้าสู่ระบบ',
       description: 'หน้า Login จะถูกสร้างตอนเริ่มทำเว็บฝั่ง Admin',
       notes: ['ระบบรองรับบัญชีผู้ดูแลเพียงบัญชีเดียว (ข้อ 14)'],
+      bareLayout: true,
     },
   },
   { path: '/admin', redirect: '/admin/projects' },

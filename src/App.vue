@@ -1,7 +1,8 @@
 <script setup>
-import { RouterLink, RouterView, useRouter } from 'vue-router'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { displayName, isAdmin, logout } from '@/store/auth'
 
+const route = useRoute()
 const router = useRouter()
 
 async function handleLogout() {
@@ -11,8 +12,8 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-800">
-    <header class="border-b border-slate-200 bg-white">
+  <div class="min-h-screen bg-[#F8FAFC] text-slate-800">
+    <header v-if="!route.meta.bareLayout" class="border-b border-slate-200 bg-white">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
         <RouterLink to="/public/villages" class="text-lg font-semibold">
           แผนชุมชน
@@ -48,7 +49,7 @@ async function handleLogout() {
       </div>
     </header>
 
-    <main class="mx-auto max-w-6xl px-4 py-8">
+    <main :class="route.meta.bareLayout ? '' : 'mx-auto max-w-6xl px-4 py-8'">
       <RouterView />
     </main>
   </div>
