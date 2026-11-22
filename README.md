@@ -6,10 +6,10 @@
 
 ```
 src/
-├─ Admin/     หน้าเจ้าหน้าที่ (Login, ตารางโครงการ, สร้างการ์ด, ฟอร์มแท็บ 1–3,
-│             จัดการหมู่บ้าน, ข้อมูลหลัก, ประวัติ) — F01–F06, F09, F10
-├─ Public/    หน้าประชาชน (เลือกหมู่บ้าน, รายการโครงการ, รายละเอียด) — F08
-├─ shared/    รหัส/ป้ายสถานะ สี และปี พ.ศ. ที่ใช้ร่วมกัน (BR-14, BR-15, BR-27–28)
+├─ Admin/     โฟลเดอร์เปล่า (views/, components/) — รอสร้างหน้าเว็บฝั่งเจ้าหน้าที่
+├─ Public/    โฟลเดอร์เปล่า (views/, components/) — รอสร้างหน้าเว็บฝั่งประชาชน
+├─ shared/    รหัส/ป้ายสถานะ สี ปี พ.ศ. + หน้า placeholder ร่วม
+├─ store/     auth store (ย้ายออกจาก Admin/)
 ├─ services/  Supabase client + auth (tables/RLS ไม่มี trigger ตามที่ตกลงกับเพื่อน)
 ├─ router/    เส้นทาง /public/* และ /admin/* พร้อม guard ตรวจสิทธิ์ ADMIN
 └─ assets/    Tailwind CSS
@@ -44,8 +44,9 @@ npm run preview
 ## สถานะปัจจุบัน
 
 - ติดตั้งแล้ว: Vue 3 + Vite + Tailwind CSS + Vue Router + `@supabase/supabase-js`
-- มี Supabase client, login/logout, ตรวจ role ADMIN และ router guard แล้ว
-- หน้าจอที่เหลือยังเป็น placeholder (ยังไม่มีตรรกะ/ข้อมูลจริง)
+- มี Supabase client, ตรวจ role ADMIN และ router guard แล้ว
+- ทุกเส้นทางใช้หน้า placeholder ร่วมกัน — ยังไม่มีไฟล์หน้าเว็บใน `src/Admin` และ `src/Public` (ตามที่ต้องการ)
+- ฟอร์ม Login เดิมถูกลบไปแล้ว สามารถดึงกลับจาก git commit `01771a1` ได้ตอนเริ่มทำเว็บฝั่ง Admin
 - ฐานข้อมูลมีแค่ตาราง + RLS ตามที่ตกลงกัน **ไม่มี trigger/function** → กฎ BR ต่างๆ จะตรวจฝั่งหน้าเว็บตอน implement ฟีเจอร์
 - RLS เดิมยังปิดข้อมูล งบ/หน่วยงาน/เอกสารแนบ/audit ไม่ให้ประชาชน รอคำยืนยันข้อ 5.1
 

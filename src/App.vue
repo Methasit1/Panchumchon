@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, RouterView, useRouter } from 'vue-router'
-import { displayName, isAdmin, logout } from '@/Admin/store/auth'
+import { displayName, isAdmin, logout } from '@/store/auth'
 
 const router = useRouter()
 

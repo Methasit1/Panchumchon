@@ -59,7 +59,6 @@ async function logout() {
   isAdmin.value = false
 }
 
-// ใช้ใน main.js เพื่อให้ session ยังตรงกับ Supabase เมื่อ token เปลี่ยน/หมดอายุ
 function startAuthListener() {
   const { data } = onAuthStateChange((_event, newSession) => {
     session.value = newSession
