@@ -6,13 +6,25 @@
 
 ```
 src/
-├─ Admin/     โฟลเดอร์เปล่า (views/, components/) — รอสร้างหน้าเว็บฝั่งเจ้าหน้าที่
+├─ Admin/     หน้าเว็บฝั่งเจ้าหน้าที่ — ตอนนี้มีแค่ LoginView.vue (F02)
+│             ที่เหลือยังเป็นโฟลเดอร์เปล่า (views/, components/)
 ├─ Public/    โฟลเดอร์เปล่า (views/, components/) — รอสร้างหน้าเว็บฝั่งประชาชน
 ├─ shared/    รหัส/ป้ายสถานะ สี ปี พ.ศ. + หน้า placeholder ร่วม
 ├─ store/     auth store (ย้ายออกจาก Admin/)
 ├─ services/  Supabase client + auth (tables/RLS ไม่มี trigger ตามที่ตกลงกับเพื่อน)
 ├─ router/    เส้นทาง /public/* และ /admin/* พร้อม guard ตรวจสิทธิ์ ADMIN
 └─ assets/    Tailwind CSS
+```
+
+## สาขาที่ใช้ working
+
+- `main` — ฐานสะอาดสำหรับให้เพื่อน `git checkout -b <branch> origin/main` ไปทำต่อ (ห้ามเพิ่มหน้าเว็บที่นี่)
+- `title` — สายงานของคุณ (ปัจจุบันอยู่สายนี้) เริ่มจากหน้า Login ก่อน
+
+```bash
+git fetch origin
+git checkout title
+git pull origin main   # อัปเดตฐานจาก main ก่อนเริ่มงานทุกครั้ง
 ```
 
 ## ตั้งค่า Supabase
@@ -41,14 +53,28 @@ npm run build    # build ตรวจสอบโครงสร้าง
 npm run preview
 ```
 
-## สถานะปัจจุบัน
+## สถานะปัจจุบัน (branch `title`)
 
 - ติดตั้งแล้ว: Vue 3 + Vite + Tailwind CSS + Vue Router + `@supabase/supabase-js`
+- ตั้งค่า `.env.local` แล้ว และทดสอบเชื่อมต่อ Supabase ผ่าน anon key สำเร็จ
+  (ตาราง `village`, `infra_type`, `project`, `project_plan`, `project_note` อ่านได้ + `is_admin()` ตอบกลับ)
+- สร้างบัญชีแอดมินแล้ว: `admin123@gmail.com` → มีแถวใน `user_account` ผูกกับ `ADMIN / is_active = true`
 - มี Supabase client, ตรวจ role ADMIN และ router guard แล้ว
-- ทุกเส้นทางใช้หน้า placeholder ร่วมกัน — ยังไม่มีไฟล์หน้าเว็บใน `src/Admin` และ `src/Public` (ตามที่ต้องการ)
-- ฟอร์ม Login เดิมถูกลบไปแล้ว สามารถดึงกลับจาก git commit `01771a1` ได้ตอนเริ่มทำเว็บฝั่ง Admin
+- หน้า **Login** (`src/Admin/views/LoginView.vue`) พร้อมทดสอบ — หน้าอื่นยังเป็น placeholder ร่วม
 - ฐานข้อมูลมีแค่ตาราง + RLS ตามที่ตกลงกัน **ไม่มี trigger/function** → กฎ BR ต่างๆ จะตรวจฝั่งหน้าเว็บตอน implement ฟีเจอร์
 - RLS เดิมยังปิดข้อมูล งบ/หน่วยงาน/เอกสารแนบ/audit ไม่ให้ประชาชน รอคำยืนยันข้อ 5.1
+
+## ทดสอบ Login
+
+```bash
+npm run dev
+```
+
+เปิด `http://localhost:5173/admin/login` → ใส่ `admin123@gmail.com` และรหัสผ่านที่ตั้งไว้
+
+- ถ้าขึ้น *"บัญชีนี้ไม่มีสิทธิ์ผู้ดูแลระบบ"* → ตรวจแถว `user_account` ว่า `is_active = true` และ role เป็น `ADMIN`
+- ถ้า login ไม่ผ่านเลย → ตรวจสถานะ user ใน **Authentication → Users** ว่าเป็น *confirmed* แล้ว
+- login สำเร็จจะไป `/admin/projects` (ยังเป็นหน้า placeholder)
 
 ## เรื่องที่รอยืนยัน (ข้อ 18)
 

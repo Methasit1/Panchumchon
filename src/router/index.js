@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { refreshAuth } from '@/store/auth'
 import RoutePlaceholder from '@/shared/views/RoutePlaceholder.vue'
+import LoginView from '@/Admin/views/LoginView.vue'
 
 // เส้นทางจัดตามหน้าจอในข้อ 12 ของ Proposal
 // ตอนนี้ทุกเส้นทางใช้หน้า placeholder ร่วมกัน — ไฟล์หน้าเว็บจริงจะสร้างใน src/Admin และ src/Public
@@ -53,7 +54,7 @@ const routes = [
   {
     path: '/admin/login',
     name: 'admin-login',
-    component: RoutePlaceholder,
+    component: LoginView,
     meta: {
       area: 'admin',
       title: 'เข้าสู่ระบบเจ้าหน้าที่',
