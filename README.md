@@ -15,6 +15,18 @@ src/
 └─ assets/    Tailwind CSS
 ```
 
+## สาขาที่ใช้ working
+
+- `main` — **ฐานสะอาด** (สายนี้) สำหรับให้เพื่อน `git checkout -b <branch> origin/main` ไปทำต่อ
+  → ไม่เพิ่มไฟล์หน้าเว็บที่นี่
+- `title` — สายงานของผู้รับผิดชอบฝั่ง Admin (มีหน้า Login แล้ว)
+
+```bash
+git fetch origin
+git checkout title
+git pull origin main   # อัปเดตฐานจาก main ก่อนเริ่มงานทุกครั้ง
+```
+
 ## ตั้งค่า Supabase
 
 1. สร้าง project ใน Supabase แล้วรัน SQL ตามลำดับ:
@@ -41,14 +53,32 @@ npm run build    # build ตรวจสอบโครงสร้าง
 npm run preview
 ```
 
-## สถานะปัจจุบัน
+## สถานะปัจจุบัน (branch `main`)
 
 - ติดตั้งแล้ว: Vue 3 + Vite + Tailwind CSS + Vue Router + `@supabase/supabase-js`
+- `.env.local` ตั้งค่าแล้ว และทดสอบเชื่อมต่อ Supabase ผ่าน anon key สำเร็จ
+  (ตาราง `village`, `infra_type`, `project`, `project_plan`, `project_note` อ่านได้ + `is_admin()` ตอบกลับ)
+- สร้างบัญชีแอดมินแล้ว: `admin123@gmail.com` → มีแถวใน `user_account` ผูกกับ `ADMIN / is_active = true`
 - มี Supabase client, ตรวจ role ADMIN และ router guard แล้ว
-- ทุกเส้นทางใช้หน้า placeholder ร่วมกัน — ยังไม่มีไฟล์หน้าเว็บใน `src/Admin` และ `src/Public` (ตามที่ต้องการ)
-- ฟอร์ม Login เดิมถูกลบไปแล้ว สามารถดึงกลับจาก git commit `01771a1` ได้ตอนเริ่มทำเว็บฝั่ง Admin
+- **ทุกเส้นทางใช้หน้า placeholder ร่วมกัน** — ไม่มีไฟล์หน้าเว็บใน `src/Admin` และ `src/Public`
+  (หน้า Login อยู่บน branch `title` หรือดึงกลับได้จาก commit `01771a1`)
 - ฐานข้อมูลมีแค่ตาราง + RLS ตามที่ตกลงกัน **ไม่มี trigger/function** → กฎ BR ต่างๆ จะตรวจฝั่งหน้าเว็บตอน implement ฟีเจอร์
 - RLS เดิมยังปิดข้อมูล งบ/หน่วยงาน/เอกสารแนบ/audit ไม่ให้ประชาชน รอคำยืนยันข้อ 5.1
+
+## ทดสอบ Login
+
+บน `main` ยังไม่มีหน้า Login ให้ทดสอบ (ทุกเส้นทางเป็น placeholder) ให้ใช้ branch `title`:
+
+```bash
+git checkout title
+npm run dev
+```
+
+เปิด `http://localhost:5173/admin/login` → ใส่ `admin123@gmail.com` และรหัสผ่านที่ตั้งไว้
+
+- ถ้าขึ้น *"บัญชีนี้ไม่มีสิทธิ์ผู้ดูแลระบบ"* → ตรวจแถว `user_account` ว่า `is_active = true` และ role เป็น `ADMIN`
+- ถ้า login ไม่ผ่านเลย → ตรวจสถานะ user ใน **Authentication → Users** ว่าเป็น *confirmed* แล้ว
+- login สำเร็จจะไป `/admin/projects` (ยังเป็นหน้า placeholder)
 
 ## เรื่องที่รอยืนยัน (ข้อ 18)
 
