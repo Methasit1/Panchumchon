@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+
+@theme {
+  /* BR-15: สีแถบความคืบหน้าได้จากสถานะโดยตรง ไม่ใช่ข้อมูลที่กรอกเอง */
+  --color-status-pending: #ffffff;
+  --color-status-progress: #facc15;
+  --color-status-done: #22c55e;
+}
+
+html {
+  font-family: 'Noto Sans Thai', 'Sarabun', system-ui, sans-serif;
+}
