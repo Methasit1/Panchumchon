@@ -7,4 +7,8 @@ import './assets/main.css'
 startAuthListener()
 refreshAuth()
 
-createApp(App).use(router).mount('#app')
+const app = createApp(App).use(router)
+
+// รอให้ router แก้ guard (ตรวจสิทธิ์) เสร็จก่อน mount
+// ไม่งั้นจะเห็น header ฝั่งประชาชนแวบหนึ่งก่อนเข้า /admin
+router.isReady().then(() => app.mount('#app'))
