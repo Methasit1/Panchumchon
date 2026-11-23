@@ -88,5 +88,31 @@ defineProps({
     <template v-else-if="name === 'arrow-left'">
       <path d="M19 12H5M11 6l-6 6 6 6" />
     </template>
+
+    <template v-else-if="name === 'pin'">
+      <path d="M12 21s6.5-5.3 6.5-11a6.5 6.5 0 1 0-13 0C5.5 15.7 12 21 12 21Z" />
+      <circle cx="12" cy="10" r="2.4" />
+    </template>
+
+    <template v-else-if="name === 'layers'">
+      <path d="m12 3 8.5 4.5L12 12 3.5 7.5 12 3Z" />
+      <path d="m3.5 12 8.5 4.5 8.5-4.5" />
+      <path d="m3.5 16.5 8.5 4.5 8.5-4.5" />
+    </template>
+
+    <template v-else-if="name === 'lock'">
+      <rect x="5" y="10.5" width="14" height="9.5" rx="2" />
+      <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
+    </template>
+
+    <template v-else-if="name === 'dots'">
+      <circle cx="5.5" cy="12" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="18.5" cy="12" r="1.3" fill="currentColor" stroke="none" />
+    </template>
+
+    <template v-else-if="name === 'close'">
+      <path d="m6 6 12 12M18 6 6 18" />
+    </template>
   </svg>
 </template>

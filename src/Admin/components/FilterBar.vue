@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { PROJECT_STATUS, STATUS_SHORT_LABEL } from '@/shared/constants/status'
+import { villageLabel } from '@/shared/utils/village'
 import AdminIcon from './icons/AdminIcon.vue'
 
 const props = defineProps({
@@ -45,7 +46,7 @@ const statusChips = computed(() => [
         >
           <option value="">เลือกหมู่บ้าน</option>
           <option v-for="village in villages" :key="village.village_id" :value="village.village_id">
-            บ้าน{{ village.village_name }} หมู่ {{ village.moo_no }}
+            {{ villageLabel(village.village_name) }} หมู่ {{ village.moo_no }}
           </option>
         </select>
         <AdminIcon

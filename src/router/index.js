@@ -4,6 +4,7 @@ import RoutePlaceholder from '@/shared/views/RoutePlaceholder.vue'
 import LoginView from '@/Admin/views/LoginView.vue'
 import AdminLayout from '@/Admin/layouts/AdminLayout.vue'
 import DashboardView from '@/Admin/views/DashboardView.vue'
+import ManageProjectsView from '@/Admin/views/ManageProjectsView.vue'
 
 // เส้นทางจัดตามหน้าจอในข้อ 12 ของ Proposal
 // ฝั่ง admin ใช้ AdminLayout เป็นแม่ เพื่อให้ sidebar/header ใช้ร่วมทุกหน้า
@@ -87,23 +88,17 @@ const routes = [
       {
         path: 'projects',
         name: 'admin-projects',
-        component: RoutePlaceholder,
+        component: ManageProjectsView,
         meta: {
-          title: 'จัดการโครงการ (ตารางสรุป)',
+          title: 'จัดการโครงการ',
           feature: 'F06 · หน้าจัดการโครงการ',
-          description: 'ดูโครงการทั้งหมด และกดปุ่มตามสถานะ (เริ่ม / อัปเดต / เสร็จสิ้น / ยกเลิก / ลบ)',
+          description: 'บริหารจัดการสถานะ ความคืบหน้า และควบคุมโครงการโครงสร้างพื้นฐานทุกหมู่บ้าน',
         },
       },
       {
         path: 'projects/create',
         name: 'admin-project-create',
-        component: RoutePlaceholder,
-        meta: {
-          title: 'สร้างการ์ดโครงการ',
-          feature: 'F03 · แท็บ 1 ข้อมูลทั่วไป',
-          description: 'เลือกหมู่บ้าน กรอกชื่อ ประเภท วัตถุประสงค์ และปีแผน',
-          notes: ['รหัสโครงการสร้างอัตโนมัติ (BR-05)', 'ปีแผนค่าเริ่มต้นเป็นปีปัจจุบัน (BR-27)'],
-        },
+        redirect: (to) => ({ name: 'admin-projects', query: { ...to.query, create: '1' } }),
       },
       {
         path: 'projects/:projectId',

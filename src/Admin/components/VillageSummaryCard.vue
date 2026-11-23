@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { PROJECT_STATUS, STATUS_SHORT_LABEL } from '@/shared/constants/status'
 import { formatNumber, formatPercent } from '@/shared/utils/format'
+import { villageLabel } from '@/shared/utils/village'
 import AdminIcon from './icons/AdminIcon.vue'
 
 const props = defineProps({
@@ -58,7 +59,7 @@ function openProjects() {
     </div>
 
     <h3 class="mt-2 text-[17px] font-semibold leading-[24px] text-[#181C1B]">
-      {{ village.name }}
+      {{ villageLabel(village.name) }}
     </h3>
     <p class="mt-[2px] text-[11px] leading-[16px] text-[#505F76]">
       ปีงบประมาณ {{ year }}
