@@ -6,20 +6,23 @@
 
 ```
 src/
-├─ Admin/     หน้าเว็บฝั่งเจ้าหน้าที่ — ตอนนี้มีแค่ LoginView.vue (F02)
-│             ที่เหลือยังเป็นโฟลเดอร์เปล่า (views/, components/)
+├─ Admin/
+│  ├─ layouts/   AdminLayout.vue — header + sidebar ใช้ร่วมทุกหน้า admin
+│  ├─ views/     LoginView.vue (F02), DashboardView.vue (ภาพรวม)
+│  └─ components/ Sidebar, StatCard, StatusBadge, FilterBar, ProjectTable,
+│                 VillageSummaryCard, icons/ — ใช้เฉพาะฝั่งเจ้าหน้าที่
 ├─ Public/    โฟลเดอร์เปล่า (views/, components/) — รอสร้างหน้าเว็บฝั่งประชาชน
-├─ shared/    รหัส/ป้ายสถานะ สี ปี พ.ศ. + หน้า placeholder ร่วม
-├─ store/     auth store (ย้ายออกจาก Admin/)
-├─ services/  Supabase client + auth (tables/RLS ไม่มี trigger ตามที่ตกลงกับเพื่อน)
-├─ router/    เส้นทาง /public/* และ /admin/* พร้อม guard ตรวจสิทธิ์ ADMIN
-└─ assets/    Tailwind CSS
+├─ shared/    รหัส/ป้ายสถานะ สี ปี พ.ศ. + ตัวจัดรูปแบบตัวเลข + หน้า placeholder ร่วม
+├─ store/     auth store
+├─ services/  Supabase client, auth, dashboard (query + สรุปยอด)
+├─ router/    เส้นทาง /public/* และ /admin/* (nested ใต้ AdminLayout) + guard ADMIN
+└─ assets/    Tailwind CSS + ฟอนต์ + โลโก้
 ```
 
 ## สาขาที่ใช้ working
 
 - `main` — ฐานสะอาดสำหรับให้เพื่อน `git checkout -b <branch> origin/main` ไปทำต่อ (ห้ามเพิ่มหน้าเว็บที่นี่)
-- `title` — สายงานของคุณ (ปัจจุบันอยู่สายนี้) เริ่มจากหน้า Login ก่อน
+- `title` — สายงานของคุณ (ปัจจุบันอยู่สายนี้) ทำหน้า Login แล้วต่อด้วยแดชบอร์ดภาพรวม
 
 ```bash
 git fetch origin
@@ -60,7 +63,14 @@ npm run preview
   (ตาราง `village`, `infra_type`, `project`, `project_plan`, `project_note` อ่านได้ + `is_admin()` ตอบกลับ)
 - สร้างบัญชีแอดมินแล้ว: `admin123@gmail.com` → มีแถวใน `user_account` ผูกกับ `ADMIN / is_active = true`
 - มี Supabase client, ตรวจ role ADMIN และ router guard แล้ว
-- หน้า **Login** (`src/Admin/views/LoginView.vue`) พร้อมทดสอบ — หน้าอื่นยังเป็น placeholder ร่วม
+- หน้า **Login** (`src/Admin/views/LoginView.vue`) พร้อมทดสอบ (F02)
+- หน้า **แดชบอร์ดภาพรวม** (`src/Admin/views/DashboardView.vue`) พร้อมใช้งาน
+  ประกอบด้วย KPI 6 การ์ด, ตัวกรองปีงบประมาณ/หมู่บ้าน/สถานะ/ค้นหา, ตารางทะเบียนโครงการ
+  (แบ่งหน้า), และการ์ดสรุปสถานะรายหมู่บ้าน
+- ทุกหน้าใต้ `/admin` ใช้ `AdminLayout` ร่วม (sidebar + header) — เพิ่มหน้าใหม่โดยเพิ่ม
+  child route ใน `src/router/index.js` และรายการเมนูใน `AdminSidebar.vue`
+- หน้าอื่นของ admin (`projects`, `villages`, `master-data`, `history`) ยังเป็น placeholder ร่วม
+- ฝั่ง `Public` ยังไม่ถูกแตะ (ทุกเส้นทางใช้ placeholder)
 - ฐานข้อมูลมีแค่ตาราง + RLS ตามที่ตกลงกัน **ไม่มี trigger/function** → กฎ BR ต่างๆ จะตรวจฝั่งหน้าเว็บตอน implement ฟีเจอร์
 - RLS เดิมยังปิดข้อมูล งบ/หน่วยงาน/เอกสารแนบ/audit ไม่ให้ประชาชน รอคำยืนยันข้อ 5.1
 
@@ -74,7 +84,25 @@ npm run dev
 
 - ถ้าขึ้น *"บัญชีนี้ไม่มีสิทธิ์ผู้ดูแลระบบ"* → ตรวจแถว `user_account` ว่า `is_active = true` และ role เป็น `ADMIN`
 - ถ้า login ไม่ผ่านเลย → ตรวจสถานะ user ใน **Authentication → Users** ว่าเป็น *confirmed* แล้ว
-- login สำเร็จจะไป `/admin/projects` (ยังเป็นหน้า placeholder)
+- login สำเร็จจะไป `/admin/dashboard`
+
+## ทดสอบแดชบอร์ด
+
+เปิด `http://localhost:5173/admin/dashboard` หลัง login (ถ้ายังไม่ login ระบบจะพาไปหน้า Login
+และกลับมาที่เดิมหลังเข้าสำเร็จ)
+
+- **ฐานข้อมูลยังว่าง** → KPI และการ์ดหมู่บ้านจะแสดง 0 ทั้งหมด (ยังไม่มีไฟล์ seed ใน repo)
+- ตัวเลข KPI อ้างข้อมูลทั้งปีงบประมาณที่เลือก ส่วนตัวกรองหมู่บ้าน/สถานะ/คำค้นมีผลกับตารางเท่านั้น
+- การ์ดหมู่บ้านแสดงทุกหมู่บ้านที่ `is_active = true` รวมหมู่บ้านที่ยังไม่มีโครงการในปีนั้น
+- ปุ่ม "เสนอก่อการใหม่ให้หมู่บ้านนี้" แสดงตามดีไซน์แต่ยังปิดใช้งาน (อยู่นอกขอบเขต Proposal ข้อ 15)
+
+### ข้อตกลงที่ใช้ในหน้านี้
+
+- งบประมาณรวม **นับทุกสถานะ** รวมโครงการที่ยกเลิก
+- ความคืบหน้าเฉลี่ยรายหมู่บ้าน = ผลรวม `progress_percent` ÷ จำนวนโครงการ (ทศนิยม 1 ตำแหน่ง)
+- สีสถานะ "ยกเลิก" ใช้สีเทาตามดีไซน์ (เอกสารยังไม่กำหนด — ข้อ 18.2)
+- ตัดฟิลด์ผู้ใหญ่บ้าน/ตำบล/อำเภอ/จังหวัดออก เพราะยังไม่มีคอลัมน์ในตาราง `village`
+- ตัวกรองพื้นที่ใช้ปุ่ม "ทั้งหมด" + dropdown "เลือกหมู่บ้าน" (ยังไม่มีข้อมูลระดับตำบลให้ cascade)
 
 ## เรื่องที่รอยืนยัน (ข้อ 18)
 
