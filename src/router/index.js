@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { refreshAuth } from '@/store/auth'
 import RoutePlaceholder from '@/shared/views/RoutePlaceholder.vue'
 import LoginView from '@/Admin/views/LoginView.vue'
+import VillageSelectView from '@/Public/views/VillageSelectView.vue'
+import VillageProjectsView from '@/Public/views/VillageProjectsView.vue'
 import AdminLayout from '@/Admin/layouts/AdminLayout.vue'
 import DashboardView from '@/Admin/views/DashboardView.vue'
 import ManageProjectsView from '@/Admin/views/ManageProjectsView.vue'
@@ -17,25 +19,28 @@ const routes = [
   {
     path: '/public/villages',
     name: 'public-villages',
-    component: RoutePlaceholder,
+    component: VillageSelectView,
     meta: {
       area: 'public',
       title: 'เลือกหมู่บ้าน',
       feature: 'F08 · หน้าเลือกหมู่บ้าน',
       description: 'แสดงรายการหมู่บ้านให้ประชาชนเลือก โดยไม่ต้อง Login',
       notes: ['โครงการที่ถูกลบไม่แสดงต่อประชาชน (BR-17)'],
+      bareLayout: true,
     },
   },
   {
     path: '/public/villages/:villageId/projects',
     name: 'public-projects',
-    component: RoutePlaceholder,
+    component: VillageProjectsView,
+    props: true,
     meta: {
       area: 'public',
-      title: 'รายการโครงการ',
-      feature: 'F08 · หน้ารายการโครงการ',
+      title: 'ติดตามโครงการหมู่บ้าน',
+      feature: 'F08 · รายการโครงการ',
       description: 'การ์ดสรุป: ชื่อโครงการ + วัตถุประสงค์ + แถบสถานะปัจจุบัน',
       notes: ['สีแถบสถานะต้องตรงกับสถานะจริง (BR-15)', 'ช่องที่ยังไม่กรอกต้องไม่แสดง (F08)'],
+      bareLayout: true,
     },
   },
   {

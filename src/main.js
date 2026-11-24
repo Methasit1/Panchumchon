@@ -2,11 +2,13 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { refreshAuth, startAuthListener } from '@/store/auth'
+import { prefetchVillages } from '@/services/public'
 import { initTheme } from '@/shared/composables/useTheme'
 import './assets/main.css'
 
 startAuthListener()
 refreshAuth()
+prefetchVillages()
 initTheme()
 
 const app = createApp(App).use(router)
