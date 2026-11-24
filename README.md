@@ -10,18 +10,20 @@ src/
 │  ├─ layouts/   AdminLayout.vue — header + sidebar ใช้ร่วมทุกหน้า admin
 │  ├─ views/     LoginView.vue (F02), DashboardView.vue (ภาพรวม),
 │  │             ManageProjectsView.vue (F06 หน้าจัดการโครงการ),
-│  │             ManageVillagesView.vue (F01 หน้าหมู่บ้าน)
+│  │             ManageVillagesView.vue (F01 หน้าหมู่บ้าน),
+│  │             MasterDataView.vue (F10 ข้อมูลหลัก 3 แท็บ)
 │  └─ components/ Sidebar, StatCard, StatusBadge, FilterBar, ProjectTable,
 │                 VillageSummaryCard, ProjectManageCard, CreateProjectModal,
-│                 VillageFormModal, ConfirmDialog, CancelProjectDialog,
-│                 StartBlockersDialog, PaginationBar, EmptyState, icons/
+│                 VillageFormModal, MasterOptionModal, ConfirmDialog,
+│                 CancelProjectDialog, StartBlockersDialog, PaginationBar,
+│                 EmptyState, icons/
 ├─ Public/    โฟลเดอร์เปล่า (views/, components/) — รอสร้างหน้าเว็บฝั่งประชาชน
-├─ shared/    constants/ (สถานะ + ตัวเลือกสถานะสิ่งก่อสร้าง + ลำดับการ์ด)
+├─ shared/    constants/ (สถานะ, ตัวเลือกสถานะสิ่งก่อสร้าง, ข้อมูลหลัก)
 │             utils/ (ตัวเลข, ปี พ.ศ., วันที่ไทย, ชื่อหมู่บ้าน) + หน้า placeholder ร่วม
 ├─ store/     auth store
 ├─ services/  Supabase client, auth, dashboard (query + สรุปยอด),
 │             projects (CRUD/เปลี่ยนสถานะ/ตัวนับรหัส), villages (หมู่บ้าน),
-│             lookups (หมู่บ้าน/ประเภท)
+│             masterData (ประเภท/หน่วยงาน/แหล่งเงิน), lookups (หมู่บ้าน/ประเภท)
 ├─ router/    เส้นทาง /public/* และ /admin/* (nested ใต้ AdminLayout) + guard ADMIN
 └─ assets/    Tailwind CSS + ฟอนต์ + โลโก้
 ```
@@ -29,7 +31,7 @@ src/
 ## สาขาที่ใช้ working
 
 - `main` — ฐานสะอาดสำหรับให้เพื่อน `git checkout -b <branch> origin/main` ไปทำต่อ (ห้ามเพิ่มหน้าเว็บที่นี่)
-- `title` — สายงานของคุณ (ปัจจุบันอยู่สายนี้) ทำหน้า Login → แดชบอร์ดภาพรวม → จัดการโครงการ → หมู่บ้าน
+- `title` — สายงานของคุณ (ปัจจุบันอยู่สายนี้) ทำหน้า Login → แดชบอร์ด → จัดการโครงการ → หมู่บ้าน → ข้อมูลหลัก
 
 ```bash
 git fetch origin
@@ -83,9 +85,13 @@ npm run preview
   และปุ่มเปลี่ยนสถานะ (เริ่มดำเนินการ / เสร็จสิ้น / ยกเลิก / ลบ) ตาม BR-13, BR-14, BR-19, BR-18
 - หน้า **หมู่บ้าน** (`src/Admin/views/ManageVillagesView.vue`) พร้อมใช้งาน (F01)
   แสดงการ์ดรายชื่อหมู่บ้าน + จำนวนโครงการ, modal เพิ่ม/แก้ไขหมู่บ้าน และสวิตช์เปิด-ปิดใช้งาน
+- หน้า **ข้อมูลหลัก** (`src/Admin/views/MasterDataView.vue`) พร้อมใช้งาน (F10)
+  มี 3 แท็บ: ประเภทโครงสร้างพื้นฐาน / หน่วยงานผู้รับผิดชอบ / แหล่งเงิน
+  พร้อมการ์ดสรุปจำนวน, modal เพิ่ม/แก้ไขตัวเลือก และสวิตช์เปิด-ปิดใช้งาน
+  (เมนู sidebar ขยายเมนูย่อยเมื่ออยู่ในหน้านี้)
 - ทุกหน้าใต้ `/admin` ใช้ `AdminLayout` ร่วม (sidebar + header) — เพิ่มหน้าใหม่โดยเพิ่ม
   child route ใน `src/router/index.js` และรายการเมนูใน `AdminSidebar.vue`
-- หน้าที่เหลือของ admin (`master-data`, `history`) และหน้ารายละเอียด/ฟอร์มโครงการ
+- หน้าที่เหลือของ admin (`history`) และหน้ารายละเอียด/ฟอร์มโครงการ
   (`/admin/projects/:id`) ยังเป็น placeholder ร่วม
 - ฝั่ง `Public` ยังไม่ถูกแตะ (ทุกเส้นทางใช้ placeholder)
 - ฐานข้อมูลมีแค่ตาราง + RLS ตามที่ตกลงกัน **ไม่มี trigger/function** → กฎ BR ต่างๆ ตรวจฝั่งหน้าเว็บ
@@ -173,15 +179,39 @@ npm run dev
 - ลำดับการ์ด: หมู่บ้านที่เปิดใช้งานก่อน แล้วเรียงตามหมู่ที่
 - หน้านี้ไม่มีตัวกรอง/ค้นหา (ตามดีไซน์)
 
+## ทดสอบหน้าข้อมูลหลัก (F10)
+
+เปิดผ่านเมนู **ข้อมูลหลัก** (กดแล้วเมนูจะกางเมนูย่อยออกมา) หรือเปิด URL ตรง:
+
+- `/admin/master-data/infra-types` — ประเภทโครงสร้างพื้นฐาน
+- `/admin/master-data/agencies` — หน่วยงานผู้รับผิดชอบ
+- `/admin/master-data/funding-sources` — แหล่งเงิน
+
+รายละเอียด:
+
+- การ์ดสรุป 3 ใบด้านบนแสดงจำนวนตัวเลือกของแต่ละชนิด และกดเพื่อสลับแท็บได้
+- การ์ดตัวเลือกแสดงชื่อ + จำนวนโครงการที่อ้างถึง + ปุ่ม "การจัดการ"
+- **เพิ่มตัวเลือก**: modal ช่องเดียว (ชื่อห้ามซ้ำกับที่มีอยู่)
+- **การจัดการ**: เปลี่ยนชื่อ หรือปิด/เปิดใช้งาน
+- ตัวเลือกที่ปิดใช้งานจะจาง + ป้าย "ปิดใช้งาน" และไม่แสดงในฟอร์มสร้างโครงการ
+- ไม่มีปุ่มลบ เพราะ `supabase_policies.sql` revoke สิทธิ์ DELETE บนตารางข้อมูลหลักไว้ (BR-26)
+
+### ข้อตกลงที่ใช้ในหน้านี้
+
+- ตัวเลขบนการ์ดสรุป = จำนวนตัวเลือกทั้งหมด (นับที่ปิดใช้งานด้วย)
+- จำนวนโครงการบนการ์ด = โครงการที่ยังไม่ถูกลบ นับทุกปีแผน
+  (หน่วยงานนับจาก `project_agency`, แหล่งเงินนับจาก `project_location_budget`)
+- ตัวเลือกที่เพิ่มใหม่จะไปปรากฏในฟอร์มสร้างโครงการทันที (เฉพาะที่ `is_active = true`)
+- หน้าเว็บไม่มีฟังก์ชันลบข้อมูลหลัก — ใช้ปิดใช้งานแทน (BR-26)
+
 ## งานที่ต้องทำต่อ
 
 1. **ฟอร์มโครงการ 3 แท็บ** (`/admin/projects/:id`) — ข้อมูลทั่วไป / พื้นที่และงบประมาณ /
    แผนดำเนินงาน + เอกสารแนบ + บันทึกความคืบหน้า; หน้าต่าง "ข้อมูลไม่ครบ" ลิงก์มาที่นี่
-2. **ข้อมูลหลัก** (`/admin/master-data`) — ประเภทงาน แหล่งเงิน หน่วยงาน ประเภทเอกสาร
-3. **ประวัติ/Audit** (`/admin/history`) — ตาราง `audit_log` ยังไม่ถูกเขียนจากหน้าเว็บ
-4. **ฝั่งประชาชน** — ทุกเส้นทางยังเป็น placeholder
-5. ตัวกรองปีงบประมาณในหน้าจัดการโครงการ (ตอนนี้ใช้ปีปัจจุบัน)
-6. เปลี่ยนข้อความใต้ชื่อโครงการจากการ์ดให้ดึง `project_note` ล่าสุด (ถ้าต้องการ)
+2. **ประวัติ/Audit** (`/admin/history`) — ตาราง `audit_log` ยังไม่ถูกเขียนจากหน้าเว็บ
+3. **ฝั่งประชาชน** — ทุกเส้นทางยังเป็น placeholder
+4. ตัวกรองปีงบประมาณในหน้าจัดการโครงการ (ตอนนี้ใช้ปีปัจจุบัน)
+5. เปลี่ยนข้อความใต้ชื่อโครงการจากการ์ดให้ดึง `project_note` ล่าสุด (ถ้าต้องการ)
 
 
 

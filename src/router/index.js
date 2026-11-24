@@ -6,6 +6,7 @@ import AdminLayout from '@/Admin/layouts/AdminLayout.vue'
 import DashboardView from '@/Admin/views/DashboardView.vue'
 import ManageProjectsView from '@/Admin/views/ManageProjectsView.vue'
 import ManageVillagesView from '@/Admin/views/ManageVillagesView.vue'
+import MasterDataView from '@/Admin/views/MasterDataView.vue'
 
 // เส้นทางจัดตามหน้าจอในข้อ 12 ของ Proposal
 // ฝั่ง admin ใช้ AdminLayout เป็นแม่ เพื่อให้ sidebar/header ใช้ร่วมทุกหน้า
@@ -130,13 +131,45 @@ const routes = [
       {
         path: 'master-data',
         name: 'admin-master-data',
-        component: RoutePlaceholder,
+        redirect: '/admin/master-data/infra-types',
+      },
+      {
+        path: 'master-data/infra-types',
+        name: 'admin-master-infra-types',
+        component: MasterDataView,
         meta: {
-          title: 'จัดการข้อมูลหลัก (Dropdown)',
-          feature: 'F10 · จัดการข้อมูลหลัก',
-          description: 'ประเภทโครงสร้างพื้นฐาน แหล่งเงินงบประมาณ และหน่วยงานที่รับผิดชอบ',
-          notes: ['ปิดการใช้งานแทนการลบ (BR-26)'],
+          masterKind: 'infra',
+          title: 'ประเภทโครงสร้างพื้นฐาน',
+          feature: 'F10 · ข้อมูลหลัก',
+          description: 'ตัวเลือกประเภทงานที่ใช้ตอนกรอกโครงการ',
         },
+      },
+      {
+        path: 'master-data/agencies',
+        name: 'admin-master-agencies',
+        component: MasterDataView,
+        meta: {
+          masterKind: 'agency',
+          title: 'หน่วยงานผู้รับผิดชอบ',
+          feature: 'F10 · ข้อมูลหลัก',
+          description: 'ตัวเลือกหน่วยงานที่ใช้ตอนกรอกโครงการ',
+        },
+      },
+      {
+        path: 'master-data/funding-sources',
+        name: 'admin-master-funding-sources',
+        component: MasterDataView,
+        meta: {
+          masterKind: 'funding',
+          title: 'แหล่งเงิน',
+          feature: 'F10 · ข้อมูลหลัก',
+          description: 'ตัวเลือกแหล่งเงินที่ใช้ตอนกรอกโครงการ',
+        },
+      },
+      {
+        path: 'master-data/create',
+        name: 'admin-master-create',
+        redirect: '/admin/master-data/infra-types?create=1',
       },
       {
         path: 'history',
