@@ -1,3 +1,4 @@
+import { normalizeVillageName } from '@/shared/utils/village'
 import { supabase } from './supabase'
 
 // BR-02: ชื่อหมู่บ้าน + หมู่ที่ ต้องไม่ซ้ำกัน (unique constraint ใน DB)
@@ -6,6 +7,34 @@ function friendlyError(error) {
     return new Error('ชื่อหมู่บ้านและหมู่ที่นี้มีอยู่แล้ว กรุณาตรวจสอบอีกครั้ง (BR-02)')
   }
   return error
+}
+
+function cleanName(name) {
+  const value = normalizeVillageName(name)
+  if (!value) throw new Error('กรุณากรอกชื่อหมู่บ้าน')
+  return value
+}
+
+// ตรวจซ้ำฝั่ง client ด้วย เพราะข้อมูลเก่าอาจเก็บชื่อมี/ไม่มีคำว่า "บ้าน" ปนกัน
+// (unique constraint ใน DB ยังเป็นตัวกันซ้ำชั้นสุดท้าย)
+async function assertUnique(name, mooNo, ignoreId = null) {
+  const { data, error } = await supabase
+    .from('village')
+    .select('village_id, village_name, moo_no')
+    .eq('moo_no', mooNo)
+
+  if (error) throw error
+
+  const target = normalizeVillageName(name)
+  const duplicated = (data ?? []).some(
+    (village) =>
+      village.village_id !== ignoreId &&
+      normalizeVillageName(village.village_name) === target,
+  )
+
+  if (duplicated) {
+    throw new Error('ชื่อหมู่บ้านและหมู่ที่นี้มีอยู่แล้ว กรุณาตรวจสอบอีกครั้ง (BR-02)')
+  }
 }
 
 // รายชื่อหมู่บ้านทั้งหมด (รวมที่ปิดใช้งาน) + จำนวนโครงการ
@@ -47,9 +76,11 @@ export async function fetchVillagesWithCounts(year = null) {
 }
 
 export async function createVillage({ name, mooNo }) {
+  await assertUnique(name, mooNo)
+
   const { data, error } = await supabase
     .from('village')
-    .insert({ village_name: name.trim(), moo_no: mooNo })
+    .insert({ village_name: cleanName(name), moo_no: mooNo })
     .select('village_id')
     .single()
 
@@ -59,9 +90,11 @@ export async function createVillage({ name, mooNo }) {
 
 // BR-26: ใช้การปิดใช้งานแทนการลบ (ลบไม่ได้เพราะโครงการอ้างอิงอยู่)
 export async function updateVillage(villageId, { name, mooNo, isActive }) {
+  await assertUnique(name, mooNo, villageId)
+
   const { error } = await supabase
     .from('village')
-    .update({ village_name: name.trim(), moo_no: mooNo, is_active: isActive })
+    .update({ village_name: cleanName(name), moo_no: mooNo, is_active: isActive })
     .eq('village_id', villageId)
 
   if (error) throw friendlyError(error)

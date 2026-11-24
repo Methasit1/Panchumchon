@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref } from 'vue'
-import { villageLabel } from '@/shared/utils/village'
+import { normalizeVillageName, villageLabel } from '@/shared/utils/village'
 import AdminIcon from './icons/AdminIcon.vue'
 
 const props = defineProps({
@@ -24,7 +24,7 @@ const submitted = ref(false)
 const errors = reactive({ name: '', mooNo: '' })
 
 function validate() {
-  errors.name = form.name.trim() ? '' : 'กรุณากรอกชื่อหมู่บ้าน'
+  errors.name = normalizeVillageName(form.name) ? '' : 'กรุณากรอกชื่อหมู่บ้าน'
 
   const moo = String(form.mooNo).trim()
   if (!moo) {
