@@ -13,7 +13,7 @@ const router = useRouter()
 const items = [
   { to: '/admin/dashboard', label: 'แดชบอร์ดภาพรวม', icon: 'dashboard' },
   { to: '/admin/projects', label: 'จัดการโครงการ', icon: 'clipboard' },
-  { to: '/admin/villages', label: 'หมู่บ้าน', icon: 'home' },
+  { to: '/admin/villages', label: 'หมู่บ้าน', icon: 'seal-check' },
   {
     label: 'ข้อมูลหลัก',
     icon: 'database',
@@ -30,6 +30,11 @@ const isMasterOpen = computed(() => route.path.startsWith(masterBase))
 
 function isChildActive(path) {
   return route.path === path
+}
+
+// เมนูหลักถือว่า active เมื่ออยู่หน้าลูกของเมนูนั้นด้วย (เช่น /admin/projects/:id)
+function isItemActive(item) {
+  return route.path === item.to || route.path.startsWith(`${item.to}/`)
 }
 
 async function handleLogout() {
@@ -52,8 +57,13 @@ async function handleLogout() {
         <RouterLink
           v-if="!item.children"
           :to="item.to"
-          class="flex items-center gap-3 rounded-[8px] px-3 py-[9px] text-[13px] leading-none text-[#181C1B] transition hover:bg-[#F1F4F2] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5C48]/30"
-          active-class="bg-[#EAF2EE] font-medium text-[#1D5C48] hover:bg-[#EAF2EE]"
+          :aria-current="isItemActive(item) ? 'page' : undefined"
+          :class="[
+            'flex items-center gap-3 rounded-[10px] px-3 py-[9px] text-[13px] leading-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5C48]/30',
+            isItemActive(item)
+              ? 'bg-[#1D5C48] font-medium text-[#9AD9BF]'
+              : 'text-[#181C1B] hover:bg-[#F1F4F2]',
+          ]"
         >
           <AdminIcon :name="item.icon" class="h-[16px] w-[16px] shrink-0" />
           <span>{{ item.label }}</span>
@@ -62,10 +72,7 @@ async function handleLogout() {
         <div v-else>
           <RouterLink
             :to="item.base"
-            :class="[
-              'flex items-center gap-3 rounded-[8px] px-3 py-[9px] text-[13px] leading-none transition hover:bg-[#F1F4F2] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5C48]/30',
-              isMasterOpen ? 'font-medium text-[#1D5C48]' : 'text-[#181C1B]',
-            ]"
+            class="flex items-center gap-3 rounded-[10px] px-3 py-[9px] text-[13px] leading-none text-[#181C1B] transition hover:bg-[#F1F4F2] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5C48]/30"
           >
             <AdminIcon :name="item.icon" class="h-[16px] w-[16px] shrink-0" />
             <span>{{ item.label }}</span>
@@ -85,9 +92,9 @@ async function handleLogout() {
               :to="child.to"
               :aria-current="isChildActive(child.to) ? 'page' : undefined"
               :class="[
-                'block rounded-[8px] py-[9px] pl-[40px] pr-3 text-[13px] leading-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5C48]/30',
+                'block rounded-[10px] py-[9px] pl-[40px] pr-3 text-[13px] leading-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5C48]/30',
                 isChildActive(child.to)
-                  ? 'bg-[#1D5C48] font-medium text-white'
+                  ? 'bg-[#1D5C48] font-medium text-[#9AD9BF]'
                   : 'text-[#181C1B] hover:bg-[#F1F4F2]',
               ]"
             >
