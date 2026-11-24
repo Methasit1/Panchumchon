@@ -1,28 +1,6 @@
 @import 'tailwindcss';
 
-@font-face {
-  font-family: 'Noto Sans Thai';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('./fonts/NotoSansThai-Regular.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Noto Sans Thai';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('./fonts/NotoSansThai-Medium.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Noto Sans Thai';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('./fonts/NotoSansThai-SemiBold.ttf') format('truetype');
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* BR-15: สีแถบความคืบหน้าได้จากสถานะโดยตรง ไม่ใช่ข้อมูลที่กรอกเอง */
@@ -31,6 +9,72 @@
   --color-status-done: #22c55e;
 }
 
+:root {
+  --bg-page: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-hover: #F1F4F2;
+  --bg-active: #EAF2EE;
+  --text-primary: #181C1B;
+  --text-secondary: #505F76;
+  --text-muted: #707974;
+  --border: #BFC9C3;
+  --border-soft: #E3E8E5;
+}
+
+.dark {
+  --bg-page: #0F1419;
+  --bg-card: #1A2027;
+  --bg-hover: #222A33;
+  --bg-active: #1A3A2F;
+  --text-primary: #E6E8E6;
+  --text-secondary: #9AA5A0;
+  --text-muted: #6B7280;
+  --border: #2D3748;
+  --border-soft: #262E38;
+}
+
 html {
   font-family: 'Noto Sans Thai', 'Sarabun', system-ui, sans-serif;
+  background-color: var(--bg-page);
 }
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+}
+
+/* Dark mode: ปรับสีพื้นหลัง/ตัวอักษร/เส้นขอบที่ใช้ซ้ำทั้งแอป */
+.dark .bg-white { background-color: var(--bg-card) !important; }
+.dark .bg-\[\#F8FAFC\] { background-color: var(--bg-page) !important; }
+.dark .bg-\[\#F1F4F2\] { background-color: var(--bg-hover) !important; }
+.dark .bg-\[\#EAF2EE\] { background-color: var(--bg-active) !important; }
+.dark .bg-\[\#FDF6D8\] { background-color: #2A2416 !important; }
+.dark .bg-\[\#FEF2F2\] { background-color: #2A1A1A !important; }
+.dark .bg-red-50 { background-color: #2A1A1A !important; }
+.dark .bg-\[\#FEE2E2\] { background-color: #3A1A1A !important; }
+
+.dark .text-\[\#181C1B\] { color: var(--text-primary) !important; }
+.dark .text-\[\#505F76\] { color: var(--text-secondary) !important; }
+.dark .text-\[\#707974\] { color: var(--text-muted) !important; }
+.dark .text-slate-800 { color: var(--text-primary) !important; }
+.dark .text-slate-600 { color: var(--text-secondary) !important; }
+
+.dark .border-\[\#BFC9C3\] { border-color: var(--border) !important; }
+.dark .border-\[\#E3E8E5\] { border-color: var(--border-soft) !important; }
+.dark .border-red-200 { border-color: #5A2A2A !important; }
+.dark .border-red-300 { border-color: #6A3A3A !important; }
+.dark .border-slate-200 { border-color: var(--border) !important; }
+.dark .border-slate-300 { border-color: var(--border) !important; }
+.dark .border-\[\#1D5C48\]\/30 { border-color: color-mix(in srgb, #1D5C48 35%, transparent) !important; }
+
+.dark .border-\[\#BFC9C3\]\/50 { border-color: color-mix(in srgb, var(--border) 50%, transparent) !important; }
+.dark .border-\[\#BFC9C3\]\/60 { border-color: color-mix(in srgb, var(--border) 60%, transparent) !important; }
+.dark .border-\[\#BFC9C3\]\/70 { border-color: color-mix(in srgb, var(--border) 70%, transparent) !important; }
+
+.dark .placeholder\:text-\[\#707974\]::placeholder { color: var(--text-muted) !important; }
+
+.dark .hover\:bg-\[\#F1F4F2\]:hover { background-color: var(--bg-hover) !important; }
+.dark .hover\:bg-\[\#F8FAFC\]:hover { background-color: var(--bg-hover) !important; }
+.dark .hover\:bg-slate-100:hover { background-color: var(--bg-hover) !important; }
+.dark .hover\:bg-red-100:hover { background-color: #3A1A1A !important; }
+.dark .hover\:bg-\[\#FEF2F2\]:hover { background-color: #2A1A1A !important; }

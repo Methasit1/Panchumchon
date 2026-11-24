@@ -14,11 +14,12 @@ src/
 │  │             MasterDataView.vue (F10 ข้อมูลหลัก 3 แท็บ)
 │  └─ components/ Sidebar, StatCard, StatusBadge, FilterBar, ProjectTable,
 │                 VillageSummaryCard, ProjectManageCard, CreateProjectModal,
-│                 VillageFormModal, MasterOptionModal, ConfirmDialog,
+│                 VillageFormModal, MasterOptionModal, ThemeToggle, ConfirmDialog,
 │                 CancelProjectDialog, StartBlockersDialog, PaginationBar,
 │                 EmptyState, icons/
 ├─ Public/    โฟลเดอร์เปล่า (views/, components/) — รอสร้างหน้าเว็บฝั่งประชาชน
 ├─ shared/    constants/ (สถานะ, ตัวเลือกสถานะสิ่งก่อสร้าง, ข้อมูลหลัก)
+│             composables/ (useTheme — โหมดมืด/สว่าง)
 │             utils/ (ตัวเลข, ปี พ.ศ., วันที่ไทย, ชื่อหมู่บ้าน) + หน้า placeholder ร่วม
 ├─ store/     auth store
 ├─ services/  Supabase client, auth, dashboard (query + สรุปยอด),
@@ -93,6 +94,10 @@ npm run preview
   child route ใน `src/router/index.js` และรายการเมนูใน `AdminSidebar.vue`
   (เมนูที่กำลังเปิดอยู่แสดงเป็นแถบเขียวเข้ม ตัวอักษร/ไอคอนสีเขียวมิ้นต์ และเมนูย่อยของ
   "ข้อมูลหลัก" จะกางพร้อมไฮไลต์หน้าที่เลือก)
+- รองรับ **โหมดมืด/สว่าง** ทั้งฝั่งเจ้าหน้าที่และฝั่งประชาชน — ปุ่มสลับอยู่ที่ header
+  (ไอคอนพระจันทร์/ดวงอาทิตย์) ค่าที่เลือกเก็บใน `localStorage` (`panchumchon-theme`)
+  ค่าเริ่มต้นเป็นโหมดสว่าง ใช้ Tailwind `dark:` (class strategy) + CSS variables ใน
+  `src/assets/main.css` สำหรับสีพื้น/ตัวอักษร/เส้นขอบที่ใช้ซ้ำทั้งแอป
 - หน้าที่เหลือของ admin (`history`) และหน้ารายละเอียด/ฟอร์มโครงการ
   (`/admin/projects/:id`) ยังเป็น placeholder ร่วม
 - ฝั่ง `Public` ยังไม่ถูกแตะ (ทุกเส้นทางใช้ placeholder)
@@ -205,6 +210,20 @@ npm run dev
   (หน่วยงานนับจาก `project_agency`, แหล่งเงินนับจาก `project_location_budget`)
 - ตัวเลือกที่เพิ่มใหม่จะไปปรากฏในฟอร์มสร้างโครงการทันที (เฉพาะที่ `is_active = true`)
 - หน้าเว็บไม่มีฟังก์ชันลบข้อมูลหลัก — ใช้ปิดใช้งานแทน (BR-26)
+
+## โหมดมืด/สว่าง
+
+- ปุ่มสลับอยู่ที่ header ทั้งฝั่ง `/admin` และ `/public` (ไอคอนพระจันทร์ = โหมดสว่าง,
+  ดวงอาทิตย์ = โหมดมืด)
+- ค่าที่เลือกเก็บใน `localStorage` key `panchumchon-theme` (`light`/`dark`) และ
+  ใส่ class `dark` ที่ `<html>` ตอนโหลด (กันกระพริบ)
+- ค่าเริ่มต้น = โหมดสว่าง (ไม่อ่าน `prefers-color-scheme`)
+- Tailwind v4 ใช้ `@custom-variant dark` ใน `src/assets/main.css` + CSS variables
+  (`--bg-page`, `--bg-card`, `--bg-hover`, `--bg-active`, `--text-primary`,
+  `--text-secondary`, `--text-muted`, `--border`, `--border-soft`)
+- สีที่ใช้ซ้ำทั่วแอปถูก override ผ่าน CSS selectors ภายใต้ `.dark` (bg-white,
+  bg-[#F8FAFC], text-[#181C1B], border-[#BFC9C3] ฯลฯ) ทำให้ไม่ต้องแก้ทุก component
+- จุดที่ยังเป็น light เท่านั้น: โลโก้/รูปภาพ (ไม่จำเป็น), badge สีสถานะ (ตั้งใจให้สีคงที่)
 
 ## งานที่ต้องทำต่อ
 

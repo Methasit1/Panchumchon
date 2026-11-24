@@ -5,6 +5,7 @@ import { displayName } from '@/store/auth'
 import logo from '@/assets/logo.png'
 import AdminIcon from '@/Admin/components/icons/AdminIcon.vue'
 import AdminSidebar from '@/Admin/components/AdminSidebar.vue'
+import ThemeToggle from '@/Admin/components/ThemeToggle.vue'
 
 const route = useRoute()
 const mobileOpen = ref(false)
@@ -41,6 +42,7 @@ watch(
       </div>
 
       <div class="flex items-center gap-2">
+        <ThemeToggle />
         <span class="hidden text-[12px] text-[#505F76] sm:block">{{ displayName }}</span>
         <span
           class="flex h-8 w-8 items-center justify-center rounded-full bg-[#1D5C48] text-[13px] font-medium text-white"

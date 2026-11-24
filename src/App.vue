@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { displayName, isAdmin, logout } from '@/store/auth'
+import ThemeToggle from '@/Admin/components/ThemeToggle.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -44,6 +45,7 @@ async function handleLogout() {
           </nav>
 
           <div v-if="isAdmin" class="ml-auto flex items-center gap-3 text-sm">
+            <ThemeToggle />
             <span class="text-slate-600">{{ displayName }}</span>
             <button
               type="button"
@@ -52,6 +54,9 @@ async function handleLogout() {
             >
               ออกจากระบบ
             </button>
+          </div>
+          <div v-else class="ml-auto">
+            <ThemeToggle />
           </div>
         </div>
       </header>
