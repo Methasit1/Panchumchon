@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { villageLabel } from '@/shared/utils/village'
 import {
@@ -25,8 +25,6 @@ const formError = ref('')
 
 const notice = ref('')
 let noticeTimer = null
-
-const activeCount = computed(() => villages.value.filter((village) => village.isActive).length)
 
 function showNotice(message) {
   notice.value = message
@@ -102,6 +100,13 @@ async function handleSubmit(payload) {
     }
     formOpen.value = false
     editing.value = null
+
+    if (route.query.create) {
+      const query = { ...route.query }
+      delete query.create
+      router.replace({ query })
+    }
+
     await loadVillages()
   } catch (err) {
     formError.value = err.message
@@ -211,11 +216,6 @@ async function handleSubmit(payload) {
             การจัดการ
           </button>
         </article>
-
-        <p class="pt-1 text-[11px] leading-[17px] text-[#707974]">
-          ทั้งหมด {{ villages.length }} หมู่บ้าน · เปิดใช้งาน {{ activeCount }} หมู่บ้าน
-          · จำนวนโครงการนับจากทุกปีแผนที่ยังไม่ถูกลบ
-        </p>
       </template>
 
       <EmptyState

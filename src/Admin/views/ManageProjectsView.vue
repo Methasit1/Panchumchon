@@ -178,7 +178,12 @@ async function handleCreate(payload) {
     await createProject(payload)
     await loadProjects()
     showNotice('สร้างการ์ดโครงการเรียบร้อยแล้ว — เผยแพร่ในสถานะรออนุมัติแผนงาน')
-    closeCreate()
+    createOpen.value = false
+    if (route.query.create) {
+      const query = { ...route.query }
+      delete query.create
+      router.replace({ query })
+    }
   } catch (err) {
     createError.value = err.message
   } finally {
