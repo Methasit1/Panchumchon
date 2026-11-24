@@ -15,6 +15,14 @@ export const STATUS_LABEL = Object.freeze({
   [PROJECT_STATUS.CANCELLED]: 'ยกเลิก',
 })
 
+// ป้ายแบบสั้น ใช้กับตัวกรองสถานะบนแดชบอร์ด
+export const STATUS_SHORT_LABEL = Object.freeze({
+  [PROJECT_STATUS.PENDING_APPROVAL]: 'รออนุมัติ',
+  [PROJECT_STATUS.IN_PROGRESS]: 'กำลังดำเนินการ',
+  [PROJECT_STATUS.COMPLETED]: 'เสร็จสิ้น',
+  [PROJECT_STATUS.CANCELLED]: 'ยกเลิก',
+})
+
 // BR-14: % ความคืบหน้าตามสถานะ และต้องไม่ลดลง
 export const PROGRESS_RANGE = Object.freeze({
   [PROJECT_STATUS.PENDING_APPROVAL]: Object.freeze({ min: 0, max: 0 }),
