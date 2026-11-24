@@ -4,9 +4,14 @@ import RoutePlaceholder from '@/shared/views/RoutePlaceholder.vue'
 import LoginView from '@/Admin/views/LoginView.vue'
 import VillageSelectView from '@/Public/views/VillageSelectView.vue'
 import VillageProjectsView from '@/Public/views/VillageProjectsView.vue'
+import AdminLayout from '@/Admin/layouts/AdminLayout.vue'
+import DashboardView from '@/Admin/views/DashboardView.vue'
+import ManageProjectsView from '@/Admin/views/ManageProjectsView.vue'
+import ManageVillagesView from '@/Admin/views/ManageVillagesView.vue'
+import MasterDataView from '@/Admin/views/MasterDataView.vue'
 
 // เส้นทางจัดตามหน้าจอในข้อ 12 ของ Proposal
-// ตอนนี้ทุกเส้นทางใช้หน้า placeholder ร่วมกัน — ไฟล์หน้าเว็บจริงจะสร้างใน src/Admin และ src/Public
+// ฝั่ง admin ใช้ AdminLayout เป็นแม่ เพื่อให้ sidebar/header ใช้ร่วมทุกหน้า
 const routes = [
   { path: '/', redirect: '/public/villages' },
 
@@ -69,77 +74,120 @@ const routes = [
       bareLayout: true,
     },
   },
-  { path: '/admin', redirect: '/admin/projects' },
+
+  // ทุกหน้าใต้ /admin ใช้ layout ร่วม (sidebar + header)
   {
-    path: '/admin/projects',
-    name: 'admin-projects',
-    component: RoutePlaceholder,
-    meta: {
-      area: 'admin',
-      title: 'จัดการโครงการ (ตารางสรุป)',
-      feature: 'F06 · หน้าจัดการโครงการ',
-      description: 'ดูโครงการทั้งหมด และกดปุ่มตามสถานะ (เริ่ม / อัปเดต / เสร็จสิ้น / ยกเลิก / ลบ)',
-    },
-  },
-  {
-    path: '/admin/projects/create',
-    name: 'admin-project-create',
-    component: RoutePlaceholder,
-    meta: {
-      area: 'admin',
-      title: 'สร้างการ์ดโครงการ',
-      feature: 'F03 · แท็บ 1 ข้อมูลทั่วไป',
-      description: 'เลือกหมู่บ้าน กรอกชื่อ ประเภท วัตถุประสงค์ และปีแผน',
-      notes: ['รหัสโครงการสร้างอัตโนมัติ (BR-05)', 'ปีแผนค่าเริ่มต้นเป็นปีปัจจุบัน (BR-27)'],
-    },
-  },
-  {
-    path: '/admin/projects/:projectId',
-    name: 'admin-project-form',
-    component: RoutePlaceholder,
-    meta: {
-      area: 'admin',
-      title: 'เริ่มดำเนินการ / แก้ไขโครงการ (แท็บ 1–3)',
-      feature: 'F04 · F05 · พื้นที่ งบประมาณ และแผนการดำเนินงาน',
-      description: 'กรอกพื้นที่และงบประมาณ พร้อมแผนการดำเนินงานและเอกสารประกอบ',
-      notes: ['ต้องตรวจ BR-08 ถึง BR-11 ก่อนเปลี่ยนสถานะ', 'หมายเหตุเพิ่มได้อย่างเดียว (BR-12)'],
-    },
-  },
-  {
-    path: '/admin/villages',
-    name: 'admin-villages',
-    component: RoutePlaceholder,
-    meta: {
-      area: 'admin',
-      title: 'จัดการหมู่บ้าน',
-      feature: 'F01 · จัดการหมู่บ้าน',
-      description: 'เพิ่ม แก้ไข และดูรายชื่อหมู่บ้าน (ชื่อบ้าน หมู่ที่)',
-      notes: ['ชื่อบ้านและหมู่ที่ต้องไม่ซ้ำกัน (BR-02)'],
-    },
-  },
-  {
-    path: '/admin/master-data',
-    name: 'admin-master-data',
-    component: RoutePlaceholder,
-    meta: {
-      area: 'admin',
-      title: 'จัดการข้อมูลหลัก (Dropdown)',
-      feature: 'F10 · จัดการข้อมูลหลัก',
-      description: 'ประเภทโครงสร้างพื้นฐาน แหล่งเงินงบประมาณ และหน่วยงานที่รับผิดชอบ',
-      notes: ['ปิดการใช้งานแทนการลบ (BR-26)'],
-    },
-  },
-  {
-    path: '/admin/history',
-    name: 'admin-history',
-    component: RoutePlaceholder,
-    meta: {
-      area: 'admin',
-      title: 'ประวัติการเปลี่ยนแปลง',
-      feature: 'F09 · ประวัติการเปลี่ยนแปลง',
-      description: 'ดูประวัติการเปลี่ยนข้อมูลสำคัญ (ค่าเดิม ค่าใหม่ ผู้ทำ เวลา)',
-      notes: ['แก้ไขหรือลบประวัติไม่ได้ (BR-25)'],
-    },
+    path: '/admin',
+    component: AdminLayout,
+    meta: { area: 'admin' },
+    children: [
+      { path: '', redirect: '/admin/dashboard' },
+      {
+        path: 'dashboard',
+        name: 'admin-dashboard',
+        component: DashboardView,
+        meta: {
+          title: 'แดชบอร์ดภาพรวม',
+          feature: 'ภาพรวมโครงการและงบประมาณรายหมู่บ้าน',
+          description: 'สรุปจำนวนโครงการ งบประมาณ และความคืบหน้าของปีงบประมาณที่เลือก',
+        },
+      },
+      {
+        path: 'projects',
+        name: 'admin-projects',
+        component: ManageProjectsView,
+        meta: {
+          title: 'จัดการโครงการ',
+          feature: 'F06 · หน้าจัดการโครงการ',
+          description: 'บริหารจัดการสถานะ ความคืบหน้า และควบคุมโครงการโครงสร้างพื้นฐานทุกหมู่บ้าน',
+        },
+      },
+      {
+        path: 'projects/create',
+        name: 'admin-project-create',
+        redirect: (to) => ({ name: 'admin-projects', query: { ...to.query, create: '1' } }),
+      },
+      {
+        path: 'projects/:projectId',
+        name: 'admin-project-form',
+        component: RoutePlaceholder,
+        meta: {
+          title: 'เริ่มดำเนินการ / แก้ไขโครงการ (แท็บ 1–3)',
+          feature: 'F04 · F05 · พื้นที่ งบประมาณ และแผนการดำเนินงาน',
+          description: 'กรอกพื้นที่และงบประมาณ พร้อมแผนการดำเนินงานและเอกสารประกอบ',
+          notes: ['ต้องตรวจ BR-08 ถึง BR-11 ก่อนเปลี่ยนสถานะ', 'หมายเหตุเพิ่มได้อย่างเดียว (BR-12)'],
+        },
+      },
+      {
+        path: 'villages',
+        name: 'admin-villages',
+        component: ManageVillagesView,
+        meta: {
+          title: 'หมู่บ้าน',
+          feature: 'F01 · จัดการหมู่บ้าน',
+          description: 'จัดการรายชื่อหมู่บ้านและสถานะการดำเนินงานโครงการ',
+        },
+      },
+      {
+        path: 'villages/create',
+        name: 'admin-village-create',
+        redirect: (to) => ({ name: 'admin-villages', query: { ...to.query, create: '1' } }),
+      },
+      {
+        path: 'master-data',
+        name: 'admin-master-data',
+        redirect: '/admin/master-data/infra-types',
+      },
+      {
+        path: 'master-data/infra-types',
+        name: 'admin-master-infra-types',
+        component: MasterDataView,
+        meta: {
+          masterKind: 'infra',
+          title: 'ประเภทโครงสร้างพื้นฐาน',
+          feature: 'F10 · ข้อมูลหลัก',
+          description: 'ตัวเลือกประเภทงานที่ใช้ตอนกรอกโครงการ',
+        },
+      },
+      {
+        path: 'master-data/agencies',
+        name: 'admin-master-agencies',
+        component: MasterDataView,
+        meta: {
+          masterKind: 'agency',
+          title: 'หน่วยงานผู้รับผิดชอบ',
+          feature: 'F10 · ข้อมูลหลัก',
+          description: 'ตัวเลือกหน่วยงานที่ใช้ตอนกรอกโครงการ',
+        },
+      },
+      {
+        path: 'master-data/funding-sources',
+        name: 'admin-master-funding-sources',
+        component: MasterDataView,
+        meta: {
+          masterKind: 'funding',
+          title: 'แหล่งเงิน',
+          feature: 'F10 · ข้อมูลหลัก',
+          description: 'ตัวเลือกแหล่งเงินที่ใช้ตอนกรอกโครงการ',
+        },
+      },
+      {
+        path: 'master-data/create',
+        name: 'admin-master-create',
+        redirect: '/admin/master-data/infra-types?create=1',
+      },
+      {
+        path: 'history',
+        name: 'admin-history',
+        component: RoutePlaceholder,
+        meta: {
+          title: 'ประวัติการเปลี่ยนแปลง',
+          feature: 'F09 · ประวัติการเปลี่ยนแปลง',
+          description: 'ดูประวัติการเปลี่ยนข้อมูลสำคัญ (ค่าเดิม ค่าใหม่ ผู้ทำ เวลา)',
+          notes: ['แก้ไขหรือลบประวัติไม่ได้ (BR-25)'],
+        },
+      },
+    ],
   },
 ]
 
@@ -150,7 +198,8 @@ const router = createRouter({
 
 // F02: ผู้ที่ไม่ได้ Login หรือไม่มีสิทธิ์ ADMIN เข้าถึงหน้าจัดการข้อมูลไม่ได้
 router.beforeEach(async (to) => {
-  if (to.meta.area !== 'admin' || to.name === 'admin-login') return true
+  const isAdminArea = to.matched.some((record) => record.meta.area === 'admin')
+  if (!isAdminArea || to.name === 'admin-login') return true
 
   const allowed = await refreshAuth()
   if (!allowed) {
