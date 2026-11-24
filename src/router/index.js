@@ -5,6 +5,7 @@ import LoginView from '@/Admin/views/LoginView.vue'
 import AdminLayout from '@/Admin/layouts/AdminLayout.vue'
 import DashboardView from '@/Admin/views/DashboardView.vue'
 import ManageProjectsView from '@/Admin/views/ManageProjectsView.vue'
+import ManageVillagesView from '@/Admin/views/ManageVillagesView.vue'
 
 // เส้นทางจัดตามหน้าจอในข้อ 12 ของ Proposal
 // ฝั่ง admin ใช้ AdminLayout เป็นแม่ เพื่อให้ sidebar/header ใช้ร่วมทุกหน้า
@@ -114,13 +115,17 @@ const routes = [
       {
         path: 'villages',
         name: 'admin-villages',
-        component: RoutePlaceholder,
+        component: ManageVillagesView,
         meta: {
-          title: 'จัดการหมู่บ้าน',
+          title: 'หมู่บ้าน',
           feature: 'F01 · จัดการหมู่บ้าน',
-          description: 'เพิ่ม แก้ไข และดูรายชื่อหมู่บ้าน (ชื่อบ้าน หมู่ที่)',
-          notes: ['ชื่อบ้านและหมู่ที่ต้องไม่ซ้ำกัน (BR-02)'],
+          description: 'จัดการรายชื่อหมู่บ้านและสถานะการดำเนินงานโครงการ',
         },
+      },
+      {
+        path: 'villages/create',
+        name: 'admin-village-create',
+        redirect: (to) => ({ name: 'admin-villages', query: { ...to.query, create: '1' } }),
       },
       {
         path: 'master-data',
