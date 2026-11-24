@@ -16,11 +16,11 @@ const label = computed(() => STATUS_LABEL[props.status] ?? props.status)
 <template>
   <span
     :class="[
-      'inline-flex items-center gap-[6px] rounded-full px-[10px] py-[5px] text-[10px] font-medium leading-none whitespace-nowrap',
+      'inline-flex items-center gap-[6px] rounded-full px-[12px] py-[6px] text-[12px] font-medium leading-none whitespace-nowrap',
       badge.pill,
     ]"
   >
-    <span :class="['h-[6px] w-[6px] shrink-0 rounded-full', badge.dot]" />
+    <span :class="['h-[7px] w-[7px] shrink-0 rounded-full', badge.dot]" />
     {{ label }}
   </span>
 </template>

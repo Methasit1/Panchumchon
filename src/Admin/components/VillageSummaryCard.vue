@@ -50,48 +50,48 @@ function openProjects() {
     ]"
   >
     <div class="flex items-start justify-between gap-2">
-      <span class="rounded-[6px] bg-[#F1F4F2] px-2 py-[3px] text-[10px] leading-none text-[#505F76]">
+      <span class="rounded-[6px] bg-[#F1F4F2] px-2 py-[3px] text-[12px] leading-none text-[#505F76]">
         หมู่ที่ {{ village.mooNo }}
       </span>
-      <span class="text-[26px] font-semibold leading-none tracking-tight">
+      <span class="text-[32px] font-semibold leading-none tracking-tight">
         {{ village.projectCount }}
       </span>
     </div>
 
-    <h3 class="mt-2 text-[17px] font-semibold leading-[24px] text-[#181C1B]">
+    <h3 class="mt-2 text-[19px] font-semibold leading-[24px] text-[#181C1B]">
       {{ villageLabel(village.name) }}
     </h3>
-    <p class="mt-[2px] text-[11px] leading-[16px] text-[#505F76]">
+    <p class="mt-[2px] text-[13px] leading-[16px] text-[#505F76]">
       ปีงบประมาณ {{ year }}
     </p>
 
-    <div class="mt-3 border-t border-[#E3E8E5] pt-2 text-[12px] leading-[18px]">
+    <div class="mt-3 border-t border-[#E3E8E5] pt-2 text-[13px] leading-[18px]">
       <div class="flex items-baseline justify-between gap-2">
         <span class="text-[#505F76]">งบประมาณรวมที่จัดสรร:</span>
         <span class="font-semibold text-[#181C1B]">
           {{ formatNumber(village.budget) }}
-          <span class="text-[11px] font-normal text-[#505F76]">บาท</span>
+          <span class="text-[12px] font-normal text-[#505F76]">บาท</span>
         </span>
       </div>
 
       <div class="mt-1 flex items-baseline justify-between gap-2">
         <span class="text-[#505F76]">สถานะโครงการ:</span>
-        <span v-if="statusSummary.length" class="text-right text-[11px] text-[#181C1B]">
+        <span v-if="statusSummary.length" class="text-right text-[14px] text-[#181C1B]">
           {{ statusSummary.map((item) => `${item.label} ${item.count}`).join(' | ') }}
         </span>
-        <span v-else class="text-[11px] italic text-[#707974]">
+        <span v-else class="text-[12px] italic text-[#707974]">
           ยังไม่มีโครงการในแผนปี {{ year }}
         </span>
       </div>
 
       <div class="mt-[6px] flex items-baseline justify-between gap-2">
         <span class="text-[#505F76]">ความคืบหน้าเฉลี่ย</span>
-        <span class="text-[11px] font-medium text-[#181C1B]">
+        <span class="text-[13px] font-medium text-[#181C1B]">
           {{ formatPercent(village.avgProgress) }}
         </span>
       </div>
 
-      <div class="mt-1 h-[6px] w-full overflow-hidden rounded-full bg-[#E3E8E5]">
+      <div class="mt-1 h-[8px] w-full overflow-hidden rounded-full bg-[#E3E8E5]">
         <div
           class="h-full rounded-full bg-[#1D5C48] transition-all"
           :style="{ width: progressWidth }"

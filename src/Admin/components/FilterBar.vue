@@ -28,11 +28,11 @@ const statusChips = computed(() => [
 <template>
   <div class="rounded-[14px] border border-[#BFC9C3]/70 bg-white px-4 py-3">
     <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
-      <span class="text-[12px] font-medium leading-none text-[#181C1B]">เลือกพื้นที่หมู่บ้าน:</span>
+      <span class="text-[13px] font-medium leading-none text-[#181C1B]">เลือกพื้นที่หมู่บ้าน:</span>
 
       <button
         type="button"
-        class="h-7 rounded-[7px] bg-[#1D5C48] px-[10px] text-[12px] font-medium leading-none text-white transition hover:bg-[#174C3B] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5C48]/30"
+        class="h-8 rounded-[7px] bg-[#1D5C48] px-[12px] text-[13px] font-medium leading-none text-white transition hover:bg-[#174C3B] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5C48]/30"
         :aria-pressed="villageId === ''"
         @click="villageId = ''"
       >
@@ -42,7 +42,7 @@ const statusChips = computed(() => [
       <div class="relative">
         <select
           v-model="villageId"
-          class="h-7 min-w-[118px] appearance-none rounded-[7px] border border-[#BFC9C3] bg-white pl-[10px] pr-7 text-[12px] leading-none text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
+          class="h-8 min-w-[128px] appearance-none rounded-[7px] border border-[#BFC9C3] bg-white pl-[10px] pr-7 text-[13px] leading-none text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
         >
           <option value="">เลือกหมู่บ้าน</option>
           <option v-for="village in villages" :key="village.village_id" :value="village.village_id">
@@ -64,7 +64,7 @@ const statusChips = computed(() => [
           v-model="search"
           type="search"
           placeholder="ค้นหาด้วยชื่อโครงการ หรือ ชื่อหมู่บ้าน"
-          class="h-8 w-full rounded-[7px] border border-[#BFC9C3] bg-white pl-[30px] pr-3 text-[12px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 sm:w-[260px]"
+          class="h-8 w-full rounded-[7px] border border-[#BFC9C3] bg-white pl-[30px] pr-3 text-[13px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 sm:w-[260px]"
         />
       </div>
     </div>
@@ -72,13 +72,13 @@ const statusChips = computed(() => [
     <div
       class="mt-[10px] flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[#E3E8E5] pt-[10px]"
     >
-      <span class="text-[12px] leading-none text-[#505F76]">สถานะ:</span>
+      <span class="text-[13px] leading-none text-[#505F76]">สถานะ:</span>
       <button
         v-for="chip in statusChips"
         :key="chip.value"
         type="button"
         :class="[
-          'rounded-[6px] px-2 py-[3px] text-[11px] leading-none transition',
+          'rounded-[6px] px-2 py-[4px] text-[12px] leading-none transition',
           status === chip.value
             ? 'border border-[#1D5C48]/35 bg-[#EAF2EE] font-medium text-[#1D5C48]'
             : 'border border-transparent text-[#505F76] hover:bg-[#F1F4F2]',

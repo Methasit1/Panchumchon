@@ -28,14 +28,14 @@ const rows = computed(() => {
   <div>
     <div class="overflow-x-auto">
       <table class="w-full min-w-[760px] border-collapse text-left">
-        <thead class="bg-[#F1F4F2] text-[12px] font-medium text-[#505F76]">
+        <thead class="bg-[#F1F4F2] text-[13px] font-medium text-[#505F76]">
           <tr>
-            <th scope="col" class="px-4 py-[9px] font-medium">ชื่อโครงการ / วัตถุประสงค์</th>
-            <th scope="col" class="w-[180px] px-4 py-[9px] font-medium">พื้นที่ดำเนินงาน</th>
-            <th scope="col" class="w-[150px] px-4 py-[9px] text-right font-medium">
+            <th scope="col" class="px-4 py-[10px] font-medium">ชื่อโครงการ / วัตถุประสงค์</th>
+            <th scope="col" class="w-[180px] px-4 py-[10px] font-medium">พื้นที่ดำเนินงาน</th>
+            <th scope="col" class="w-[150px] px-4 py-[10px] text-right font-medium">
               งบประมาณ (บาท)
             </th>
-            <th scope="col" class="w-[160px] px-4 py-[9px] font-medium">สถานะโครงการ</th>
+            <th scope="col" class="w-[160px] px-4 py-[10px] font-medium">สถานะโครงการ</th>
           </tr>
         </thead>
 
@@ -46,25 +46,25 @@ const rows = computed(() => {
             class="border-t border-[#E3E8E5] align-top transition hover:bg-[#F8FAFC]"
           >
             <td class="px-4 py-[14px]">
-              <p class="text-[13px] font-semibold leading-[19px] text-[#181C1B]">
+              <p class="text-[15px] font-semibold leading-[19px] text-[#181C1B]">
                 {{ project.name }}
               </p>
               <p
                 v-if="project.objective"
-                class="mt-[3px] line-clamp-2 max-w-[420px] text-[11px] leading-[16px] text-[#505F76]"
+                class="mt-[3px] line-clamp-2 max-w-[420px] text-[13px] leading-[16px] text-[#505F76]"
               >
                 {{ project.objective }}
               </p>
             </td>
 
-            <td class="px-4 py-[14px] text-[12px] leading-[18px] text-[#181C1B]">
+            <td class="px-4 py-[14px] text-[13px] leading-[18px] text-[#181C1B]">
               {{ villageLabel(project.villageName) }}
-              <span v-if="project.mooNo != null" class="block text-[11px] text-[#505F76]">
+              <span v-if="project.mooNo != null" class="block text-[12px] text-[#505F76]">
                 หมู่ที่ {{ project.mooNo }}
               </span>
             </td>
 
-            <td class="px-4 py-[14px] text-right text-[13px] font-semibold leading-[18px]">
+            <td class="px-4 py-[14px] text-right text-[15px] font-semibold leading-[18px]">
               {{ formatNumber(project.budget) }}
             </td>
 
@@ -75,7 +75,7 @@ const rows = computed(() => {
 
           <tr v-if="rows.length === 0">
             <td colspan="4" class="border-t border-[#E3E8E5] px-4 py-12 text-center">
-              <p class="text-[12px] text-[#505F76]">ไม่พบโครงการตามเงื่อนไขที่เลือก</p>
+              <p class="text-[14px] text-[#505F76]">ไม่พบโครงการตามเงื่อนไขที่เลือก</p>
             </td>
           </tr>
         </tbody>

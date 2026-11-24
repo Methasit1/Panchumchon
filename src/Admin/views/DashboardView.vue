@@ -138,7 +138,7 @@ watch([villageId, status, search], () => {
 <template>
   <section class="text-[#181C1B]">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <h1 class="text-[20px] font-semibold leading-[28px]">
+      <h1 class="text-[24px] font-semibold leading-[28px]">
         แดชบอร์ดภาพรวมการพัฒนาโครงสร้างพื้นฐาน
       </h1>
 
@@ -147,7 +147,7 @@ watch([villageId, status, search], () => {
         <select
           id="dashboard-year"
           v-model.number="selectedYear"
-          class="h-9 appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[12px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
+          class="h-9 appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
         >
           <option v-for="year in years" :key="year" :value="year">ปีงบประมาณ {{ year }}</option>
         </select>
@@ -199,7 +199,7 @@ watch([villageId, status, search], () => {
     <section class="mt-4 rounded-[14px] border border-[#BFC9C3]/70 bg-white">
       <header class="flex items-center gap-2 px-4 py-3">
         <AdminIcon name="table" class="h-4 w-4 text-[#1D5C48]" />
-        <h2 class="text-[13px] font-semibold leading-[20px]">
+        <h2 class="text-[15px] font-semibold leading-[20px]">
           ทะเบียนโครงการโครงสร้างพื้นฐาน ประจำปีงบประมาณ {{ selectedYear }}
         </h2>
       </header>
@@ -212,10 +212,10 @@ watch([villageId, status, search], () => {
     </section>
 
     <section class="mt-6">
-      <h2 class="text-[14px] font-semibold leading-[22px]">
+      <h2 class="text-[16px] font-semibold leading-[22px]">
         สรุปสถานะการพัฒนาโครงสร้างพื้นฐาน รายหมู่บ้าน
       </h2>
-      <p class="mt-[2px] text-[11px] leading-[16px] text-[#505F76]">
+      <p class="mt-[2px] text-[13px] leading-[16px] text-[#505F76]">
         ติดตามการกระจายงบประมาณและความคืบหน้าของโครงการในแต่ละหมู่บ้าน
       </p>
 
@@ -229,7 +229,7 @@ watch([villageId, status, search], () => {
       </div>
       <p
         v-else-if="!loading"
-        class="mt-3 rounded-[12px] border border-dashed border-[#BFC9C3] bg-white px-4 py-8 text-center text-[12px] text-[#505F76]"
+        class="mt-3 rounded-[12px] border border-dashed border-[#BFC9C3] bg-white px-4 py-8 text-center text-[14px] text-[#505F76]"
       >
         ยังไม่มีหมู่บ้านที่เปิดใช้งานในระบบ
       </p>
