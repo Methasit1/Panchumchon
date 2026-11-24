@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { refreshAuth } from '@/store/auth'
 import RoutePlaceholder from '@/shared/views/RoutePlaceholder.vue'
+import LoginView from '@/Admin/views/LoginView.vue'
+import VillageSelectView from '@/Public/views/VillageSelectView.vue'
+import VillageProjectsView from '@/Public/views/VillageProjectsView.vue'
 
 // เส้นทางจัดตามหน้าจอในข้อ 12 ของ Proposal
 // ตอนนี้ทุกเส้นทางใช้หน้า placeholder ร่วมกัน — ไฟล์หน้าเว็บจริงจะสร้างใน src/Admin และ src/Public
@@ -11,25 +14,28 @@ const routes = [
   {
     path: '/public/villages',
     name: 'public-villages',
-    component: RoutePlaceholder,
+    component: VillageSelectView,
     meta: {
       area: 'public',
       title: 'เลือกหมู่บ้าน',
       feature: 'F08 · หน้าเลือกหมู่บ้าน',
       description: 'แสดงรายการหมู่บ้านให้ประชาชนเลือก โดยไม่ต้อง Login',
       notes: ['โครงการที่ถูกลบไม่แสดงต่อประชาชน (BR-17)'],
+      bareLayout: true,
     },
   },
   {
     path: '/public/villages/:villageId/projects',
     name: 'public-projects',
-    component: RoutePlaceholder,
+    component: VillageProjectsView,
+    props: true,
     meta: {
       area: 'public',
-      title: 'รายการโครงการ',
-      feature: 'F08 · หน้ารายการโครงการ',
+      title: 'ติดตามโครงการหมู่บ้าน',
+      feature: 'F08 · รายการโครงการ',
       description: 'การ์ดสรุป: ชื่อโครงการ + วัตถุประสงค์ + แถบสถานะปัจจุบัน',
       notes: ['สีแถบสถานะต้องตรงกับสถานะจริง (BR-15)', 'ช่องที่ยังไม่กรอกต้องไม่แสดง (F08)'],
+      bareLayout: true,
     },
   },
   {
@@ -53,13 +59,14 @@ const routes = [
   {
     path: '/admin/login',
     name: 'admin-login',
-    component: RoutePlaceholder,
+    component: LoginView,
     meta: {
       area: 'admin',
       title: 'เข้าสู่ระบบเจ้าหน้าที่',
       feature: 'F02 · หน้าเข้าสู่ระบบ',
       description: 'หน้า Login จะถูกสร้างตอนเริ่มทำเว็บฝั่ง Admin',
       notes: ['ระบบรองรับบัญชีผู้ดูแลเพียงบัญชีเดียว (ข้อ 14)'],
+      bareLayout: true,
     },
   },
   { path: '/admin', redirect: '/admin/projects' },
