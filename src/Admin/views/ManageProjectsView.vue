@@ -229,7 +229,7 @@ const confirmText = computed(() => {
   if (action.type === 'start') {
     return {
       title: 'เริ่มดำเนินการโครงการ',
-      message: `${action.project.name}\nระบบจะเปลี่ยนสถานะเป็น "กำลังดำเนินการ" และเริ่มความคืบหน้าที่ 1%`,
+      message: `${action.project.name}\nระบบจะเปลี่ยนสถานะเป็น "กำลังดำเนินการ"`,
       confirmLabel: 'เริ่มดำเนินการ',
       tone: 'primary',
     }
@@ -237,7 +237,7 @@ const confirmText = computed(() => {
   if (action.type === 'complete') {
     return {
       title: 'เสร็จสิ้นโครงการ',
-      message: `${action.project.name}\nระบบจะตั้งความคืบหน้าเป็น 100% และล็อกข้อมูลแท็บ 1–3 (BR-24)`,
+      message: `${action.project.name}\nระบบจะเปลี่ยนสถานะเป็น "เสร็จสิ้นโครงการ" และล็อกข้อมูลแท็บ 1–3 (BR-24)`,
       confirmLabel: 'ยืนยันเสร็จสิ้น',
       tone: 'primary',
     }

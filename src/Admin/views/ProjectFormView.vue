@@ -248,7 +248,8 @@ async function saveCore() {
       planYear: Number(coreForm.planYear),
     })
     await loadProject()
-    showSaveMessage('บันทึกข้อมูลโครงการเรียบร้อยแล้ว')
+    showSaveMessage('บันทึกข้อมูลโครงการเรียบร้อยแล้ว — ไปยังแท็บ 2')
+    activeTab.value = 'location'
   } catch (err) {
     showSaveMessage(err.message, true)
   } finally {
@@ -269,7 +270,8 @@ async function saveLocation() {
       fundingSourceId: locationForm.fundingSourceId,
     })
     await loadProject()
-    showSaveMessage('บันทึกพื้นที่และงบประมาณเรียบร้อยแล้ว')
+    showSaveMessage('บันทึกพื้นที่และงบประมาณเรียบร้อยแล้ว — ไปยังแท็บ 3')
+    activeTab.value = 'plan'
   } catch (err) {
     showSaveMessage(err.message, true)
   } finally {
