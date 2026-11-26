@@ -188,7 +188,7 @@ export async function setProjectAgencies(projectId, agencyIds) {
   }
 }
 
-export async function addProjectNote(projectId, noteType, content) {
+export async function addProjectNote(projectId, content, noteType = 'UPDATE') {
   const { data, error } = await supabase
     .from('project_note')
     .insert({ project_id: projectId, note_type: noteType, content: content.trim() })
@@ -307,11 +307,11 @@ function todayIso() {
   return local.toISOString().slice(0, 10)
 }
 
-// BR-13/BR-14: รออนุมัติ → กำลังดำเนินการ เริ่มที่ 1%
+// BR-13/BR-14: รออนุมัติ → กำลังดำเนินการ (ไม่ใช้เปอร์เซ็นต์ความคืบหน้าแล้ว)
 export async function startProject(projectId) {
   const { error } = await supabase
     .from('project')
-    .update({ progress_status: PROJECT_STATUS.IN_PROGRESS, progress_percent: 1 })
+    .update({ progress_status: PROJECT_STATUS.IN_PROGRESS })
     .eq('project_id', projectId)
 
   if (error) throw error
@@ -323,11 +323,11 @@ export async function startProject(projectId) {
   if (planError) throw planError
 }
 
-// BR-14: เสร็จสิ้น = 100%
+// BR-14: เสร็จสิ้นโครงการ (ไม่ใช้เปอร์เซ็นต์ความคืบหน้าแล้ว)
 export async function completeProject(projectId) {
   const { error } = await supabase
     .from('project')
-    .update({ progress_status: PROJECT_STATUS.COMPLETED, progress_percent: 100 })
+    .update({ progress_status: PROJECT_STATUS.COMPLETED })
     .eq('project_id', projectId)
 
   if (error) throw error

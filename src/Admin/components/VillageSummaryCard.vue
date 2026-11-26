@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { PROJECT_STATUS, STATUS_SHORT_LABEL } from '@/shared/constants/status'
-import { formatNumber, formatPercent } from '@/shared/utils/format'
+import { formatNumber } from '@/shared/utils/format'
 import { villageLabel } from '@/shared/utils/village'
 import AdminIcon from './icons/AdminIcon.vue'
 
@@ -32,7 +32,7 @@ const statusSummary = computed(() => {
     .filter((item) => item.count > 0)
 })
 
-const progressWidth = computed(() => `${Math.min(100, Math.max(0, props.village.avgProgress))}%`)
+
 
 function openProjects() {
   router.push({
@@ -84,19 +84,7 @@ function openProjects() {
         </span>
       </div>
 
-      <div class="mt-[6px] flex items-baseline justify-between gap-2">
-        <span class="text-[#505F76]">ความคืบหน้าเฉลี่ย</span>
-        <span class="text-[13px] font-medium text-[#181C1B]">
-          {{ formatPercent(village.avgProgress) }}
-        </span>
-      </div>
-
-      <div class="mt-1 h-[8px] w-full overflow-hidden rounded-full bg-[#E3E8E5]">
-        <div
-          class="h-full rounded-full bg-[#1D5C48] transition-all"
-          :style="{ width: progressWidth }"
-        />
-      </div>
+      <!-- ความคืบหน้าเฉลี่ยถูกตัดออก (ไม่ใช้เปอร์เซ็นต์แล้ว) -->
     </div>
 
     <div class="mt-auto pt-4">

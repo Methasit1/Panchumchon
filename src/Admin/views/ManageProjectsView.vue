@@ -196,6 +196,10 @@ function openEdit(project) {
   router.push(`/admin/projects/${project.id}`)
 }
 
+function openView(project) {
+  router.push(`/admin/projects/${project.id}?mode=view`)
+}
+
 function handleStart(project) {
   const items = getStartBlockers(project)
   if (items.length) {
@@ -361,6 +365,7 @@ function goToForm(project) {
           :key="project.id"
           :project="project"
           @edit="openEdit"
+          @view="openView"
           @start="handleStart"
           @complete="handleComplete"
           @cancel="handleCancel"

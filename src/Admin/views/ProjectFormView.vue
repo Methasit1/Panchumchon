@@ -83,11 +83,43 @@ const planForm = reactive({
   agencyIds: [],
 })
 
-const noteForm = reactive({ type: 'UPDATE', content: '' })
+const noteForm = reactive({ content: '' })
 const noteSaving = ref(false)
 const noteError = ref('')
 
 const attachmentForm = reactive({ docTypeId: '', file: null })
+const photoForm = reactive({ before: null, after: null })
+const photoSaving = ref(false)
+const photoError = ref('')
+
+const photoDocTypeIds = computed(() => {
+  const before = docTypes.value.find((d) => /ก่อนทำ/.test(d.doc_type_name))
+  const after = docTypes.value.find((d) => /หลังทำ/.test(d.doc_type_name))
+  return { before: before?.doc_type_id, after: after?.doc_type_id }
+})
+
+async function submitPhotos() {
+  if (isReadOnly.value) return
+  if (!photoForm.before && !photoForm.after) return
+  photoSaving.value = true
+  photoError.value = ''
+  try {
+    if (photoForm.before && photoDocTypeIds.value.before) {
+      await uploadProjectAttachment(projectId.value, Number(photoDocTypeIds.value.before), photoForm.before)
+    }
+    if (photoForm.after && photoDocTypeIds.value.after) {
+      await uploadProjectAttachment(projectId.value, Number(photoDocTypeIds.value.after), photoForm.after)
+    }
+    photoForm.before = null
+    photoForm.after = null
+    await loadProject()
+    showSaveMessage('อัปโหลดภาพถ่ายเรียบร้อยแล้ว')
+  } catch (err) {
+    photoError.value = err.message
+  } finally {
+    photoSaving.value = false
+  }
+}
 const attachmentSaving = ref(false)
 const attachmentError = ref('')
 
@@ -96,6 +128,33 @@ const isLocked = computed(
     project.value?.status === PROJECT_STATUS.COMPLETED ||
     project.value?.status === PROJECT_STATUS.CANCELLED,
 )
+
+const readonly = computed(() => route.query.mode === 'view')
+const isReadOnly = computed(() => readonly.value || isLocked.value)
+
+// GPS paste input
+const gpsInput = ref('')
+watch(
+  () => [locationForm.latitude, locationForm.longitude],
+  ([lat, lng]) => {
+    if (lat !== '' && lng !== '') {
+      gpsInput.value = `${lat}, ${lng}`
+    }
+  },
+  { immediate: true },
+)
+
+import { parseGpsInput } from '@/shared/utils/gps'
+
+const agencyDropdownOpen = ref(false)
+
+function applyGps() {
+  const { latitude, longitude } = parseGpsInput(gpsInput.value)
+  if (latitude !== null && longitude !== null) {
+    locationForm.latitude = latitude
+    locationForm.longitude = longitude
+  }
+}
 
 const blockers = computed(() => (project.value ? getStartBlockers(project.value) : []))
 
@@ -178,7 +237,7 @@ function showSaveMessage(message, isError = false) {
 }
 
 async function saveCore() {
-  if (isLocked.value) return
+  if (isReadOnly.value) return
   saving.value = true
   try {
     await updateProjectCore(projectId.value, {
@@ -198,7 +257,7 @@ async function saveCore() {
 }
 
 async function saveLocation() {
-  if (isLocked.value) return
+  if (isReadOnly.value) return
   saving.value = true
   try {
     await upsertProjectLocationBudget(projectId.value, {
@@ -219,7 +278,7 @@ async function saveLocation() {
 }
 
 async function savePlan() {
-  if (isLocked.value) return
+  if (isReadOnly.value) return
   saving.value = true
   try {
     await upsertProjectPlan(projectId.value, {
@@ -245,11 +304,11 @@ function toggleAgency(id) {
 }
 
 async function submitNote() {
-  if (isLocked.value || !noteForm.content.trim()) return
+  if (isReadOnly.value || !noteForm.content.trim()) return
   noteSaving.value = true
   noteError.value = ''
   try {
-    await addProjectNote(projectId.value, noteForm.type, noteForm.content)
+    await addProjectNote(projectId.value, noteForm.content)
     noteForm.content = ''
     await loadProject()
   } catch (err) {
@@ -260,7 +319,7 @@ async function submitNote() {
 }
 
 async function submitAttachment() {
-  if (isLocked.value || !attachmentForm.file || !attachmentForm.docTypeId) return
+  if (isReadOnly.value || !attachmentForm.file || !attachmentForm.docTypeId) return
   attachmentSaving.value = true
   attachmentError.value = ''
   try {
@@ -348,6 +407,13 @@ const statusLabel = computed(() => project.value?.status ?? '')
     </div>
 
     <template v-else-if="project">
+      <div
+        v-if="readonly"
+        class="mt-3 rounded-[8px] border border-[#BFC9C3]/70 bg-[#F1F4F2] px-4 py-2 text-[12px] text-[#505F76]"
+      >
+        โหมดดูรายละเอียด — ข้อมูลอ่านอย่างเดียว ไม่สามารถแก้ไขได้
+      </div>
+
       <!-- Tabs -->
       <div class="mt-4 flex gap-1 border-b border-[#BFC9C3]/60">
         <button
@@ -382,7 +448,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               v-model="coreForm.name"
               type="text"
               maxlength="200"
-              :disabled="isLocked"
+              :disabled="isReadOnly"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -402,7 +468,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <div class="relative mt-1">
               <select
                 v-model="coreForm.infraTypeId"
-                :disabled="isLocked"
+                :disabled="isReadOnly"
                 class="h-11 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               >
                 <option value="">เลือกประเภท</option>
@@ -422,7 +488,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               v-model="coreForm.objective"
               rows="3"
               maxlength="1000"
-              :disabled="isLocked"
+              :disabled="isReadOnly"
               class="mt-1 w-full resize-none rounded-[8px] border border-[#BFC9C3] bg-white px-3 py-2 text-[13px] leading-[19px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -434,7 +500,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <div class="relative mt-1">
               <select
                 v-model="coreForm.structureStatus"
-                :disabled="isLocked"
+                :disabled="isReadOnly"
                 class="h-11 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               >
                 <option value="">เลือกสถานะ</option>
@@ -455,7 +521,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               type="number"
               min="2400"
               max="2700"
-              :disabled="isLocked"
+              :disabled="isReadOnly"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -481,29 +547,31 @@ const statusLabel = computed(() => project.value?.status ?? '')
         </p>
 
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label class="block text-[13px] font-medium text-[#181C1B]">ละติจูด (Latitude)</label>
-            <input
-              v-model="locationForm.latitude"
-              type="number"
-              step="0.000001"
-              min="-90"
-              max="90"
-              :disabled="isLocked"
-              class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
-            />
-          </div>
-          <div>
-            <label class="block text-[13px] font-medium text-[#181C1B]">ลองจิจูด (Longitude)</label>
-            <input
-              v-model="locationForm.longitude"
-              type="number"
-              step="0.000001"
-              min="-180"
-              max="180"
-              :disabled="isLocked"
-              class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
-            />
+          <div class="sm:col-span-2">
+            <label class="block text-[13px] font-medium text-[#181C1B]">พิกัด GPS (วาง lat, lng)</label>
+            <div class="mt-1 flex gap-2">
+              <input
+                v-model="gpsInput"
+                type="text"
+                :disabled="isReadOnly"
+                placeholder="เช่น 18.7883, 98.9853 หรือวางลิงก์ Google Maps"
+                class="h-11 flex-1 rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
+              />
+              <button
+                type="button"
+                class="h-11 shrink-0 rounded-[8px] border border-[#BFC9C3] bg-white px-4 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2] disabled:opacity-50"
+                :disabled="isReadOnly"
+                @click="applyGps"
+              >
+                แปลงพิกัด
+              </button>
+            </div>
+            <p class="mt-1 text-[10px] leading-[15px] text-[#707974]">
+              วางพิกัด GPS แล้วกด "แปลงพิกัด" ระบบจะแยกเป็นละติจูด/ลองจิจูดให้อัตโนมัติ
+            </p>
+            <p v-if="locationForm.latitude && locationForm.longitude" class="mt-1 text-[11px] text-[#1D5C48]">
+              พิกัดปัจจุบัน: {{ locationForm.latitude }}, {{ locationForm.longitude }}
+            </p>
           </div>
           <div class="sm:col-span-2">
             <label class="block text-[13px] font-medium text-[#181C1B]">ที่ตั้งโครงการ (ข้อความ)</label>
@@ -511,7 +579,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               v-model="locationForm.locationText"
               type="text"
               maxlength="500"
-              :disabled="isLocked"
+              :disabled="isReadOnly"
               placeholder="เช่น ซอย 2 บ้านหลวง หมู่ 1"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
@@ -525,7 +593,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               type="number"
               min="0"
               step="0.01"
-              :disabled="isLocked"
+              :disabled="isReadOnly"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -538,7 +606,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               type="number"
               min="2500"
               max="2700"
-              :disabled="isLocked"
+              :disabled="isReadOnly"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -549,7 +617,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <div class="relative mt-1">
               <select
                 v-model="locationForm.fundingSourceId"
-                :disabled="isLocked"
+                :disabled="isReadOnly"
                 class="h-11 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               >
                 <option value="">เลือกแหล่งเงิน</option>
@@ -591,7 +659,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.plannedStart"
                 type="date"
-                :disabled="isLocked"
+                :disabled="isReadOnly"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -602,7 +670,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.plannedEnd"
                 type="date"
-                :disabled="isLocked"
+                :disabled="isReadOnly"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -611,7 +679,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.actualStart"
                 type="date"
-                :disabled="isLocked"
+                :disabled="isReadOnly"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -620,7 +688,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.actualEnd"
                 type="date"
-                :disabled="isLocked"
+                :disabled="isReadOnly"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -630,25 +698,50 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <label class="block text-[13px] font-medium text-[#181C1B]">
               หน่วยงานผู้รับผิดชอบ <span class="text-[#B91C1C]">*</span>
             </label>
-            <div class="mt-2 grid gap-2 sm:grid-cols-2">
-              <label
-                v-for="agency in agencies"
-                :key="agency.agency_id"
-                class="flex cursor-pointer items-center gap-2 rounded-[8px] border border-[#BFC9C3]/70 bg-white px-3 py-2 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2]"
-                :class="isLocked ? 'cursor-not-allowed opacity-60' : ''"
+            <div class="relative">
+              <button
+                type="button"
+                class="flex h-11 w-full items-center justify-between rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] transition hover:bg-[#F1F4F2] disabled:cursor-not-allowed disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
+                :disabled="isReadOnly"
+                @click="agencyDropdownOpen = !agencyDropdownOpen"
               >
-                <input
-                  type="checkbox"
-                  :checked="planForm.agencyIds.includes(agency.agency_id)"
-                  :disabled="isLocked"
-                  class="h-4 w-4 rounded border-[#BFC9C3] text-[#1D5C48] focus:ring-[#1D5C48]/20"
-                  @change="toggleAgency(agency.agency_id)"
-                />
-                <span>{{ agency.agency_name }}</span>
-              </label>
-              <p v-if="!agencies.length" class="text-[11px] text-[#707974]">
-                ยังไม่มีหน่วยงานในระบบ
-              </p>
+                <span>
+                  {{ planForm.agencyIds.length ? `เลือกแล้ว ${planForm.agencyIds.length} หน่วยงาน` : 'เลือกหน่วยงานผู้รับผิดชอบ' }}
+                </span>
+                <AdminIcon name="chevron-down" class="h-4 w-4 text-[#505F76]" />
+              </button>
+
+              <div
+                v-if="agencyDropdownOpen && !isReadOnly"
+                class="absolute z-20 mt-1 max-h-[260px] w-full overflow-y-auto rounded-[8px] border border-[#BFC9C3] bg-white p-2 shadow-[0_8px_20px_rgba(15,23,42,0.12)]"
+              >
+                <label
+                  v-for="agency in agencies"
+                  :key="agency.agency_id"
+                  class="flex cursor-pointer items-center gap-2 rounded-[6px] px-2 py-[6px] text-[12px] text-[#181C1B] hover:bg-[#F1F4F2]"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="planForm.agencyIds.includes(agency.agency_id)"
+                    class="h-4 w-4 rounded border-[#BFC9C3] text-[#1D5C48] focus:ring-[#1D5C48]/20"
+                    @change="toggleAgency(agency.agency_id)"
+                  />
+                  <span>{{ agency.agency_name }}</span>
+                </label>
+                <p v-if="!agencies.length" class="px-2 py-2 text-[11px] text-[#707974]">
+                  ยังไม่มีหน่วยงานในระบบ
+                </p>
+              </div>
+
+              <div v-if="planForm.agencyIds.length" class="mt-2 flex flex-wrap gap-1.5">
+                <span
+                  v-for="id in planForm.agencyIds"
+                  :key="id"
+                  class="inline-flex items-center rounded-full bg-[#EAF2EE] px-2 py-[3px] text-[10px] text-[#1D5C48]"
+                >
+                  {{ agencies.find((a) => a.agency_id === id)?.agency_name ?? id }}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -683,7 +776,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
           </ul>
           <EmptyState v-else title="ยังไม่มีเอกสารแนบ" description="อัปโหลดไฟล์อย่างน้อย 1 ไฟล์ก่อนเริ่มดำเนินการ" />
 
-          <div v-if="!isLocked" class="mt-4 rounded-[10px] border-2 border-dashed border-[#BFC9C3] bg-[#F1F4F2]/40 p-4">
+          <div v-if="!isReadOnly" class="mt-4 rounded-[10px] border-2 border-dashed border-[#BFC9C3] bg-[#F1F4F2]/40 p-4">
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
                 <label class="block text-[12px] font-medium text-[#181C1B]">ประเภทเอกสาร</label>
@@ -720,6 +813,44 @@ const statusLabel = computed(() => project.value?.status ?? '')
                 {{ attachmentSaving ? 'กำลังอัปโหลด…' : 'อัปโหลดเอกสาร' }}
               </button>
             </div>
+
+            <!-- ภาพถ่ายสถานที่ (ไม่บังคับ) -->
+            <div class="mt-4 rounded-[10px] border border-[#E3E8E5] bg-[#F8FAFC] p-4">
+              <h3 class="text-[13px] font-semibold text-[#181C1B]">ภาพถ่ายสถานที่ (ไม่บังคับ)</h3>
+              <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label class="block text-[12px] font-medium text-[#181C1B]">ก่อนทำ</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
+                    :disabled="isReadOnly"
+                    @change="(e) => (photoForm.before = e.target?.files?.[0] ?? null)"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[12px] font-medium text-[#181C1B]">หลังทำ</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
+                    :disabled="isReadOnly"
+                    @change="(e) => (photoForm.after = e.target?.files?.[0] ?? null)"
+                  />
+                </div>
+              </div>
+              <p v-if="photoError" class="mt-2 text-[11px] text-red-700">{{ photoError }}</p>
+              <div class="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  class="h-9 rounded-[8px] bg-[#1D5C48] px-4 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="photoSaving || isReadOnly || (!photoForm.before && !photoForm.after)"
+                  @click="submitPhotos"
+                >
+                  {{ photoSaving ? 'กำลังอัปโหลด…' : 'อัปโหลดภาพถ่าย' }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -736,40 +867,23 @@ const statusLabel = computed(() => project.value?.status ?? '')
               :key="note.id"
               class="rounded-[8px] border border-[#E3E8E5] bg-[#F8FAFC] px-3 py-2 text-[12px] text-[#181C1B]"
             >
-              <div class="flex items-center gap-2 text-[10px] text-[#707974]">
-                <span class="rounded-full bg-[#EAF2EE] px-2 py-[2px] text-[#1D5C48]">{{ note.type }}</span>
-                <span>{{ formatThaiDate(note.createdAt) }}</span>
+              <div class="text-[10px] text-[#707974]">
+                {{ formatThaiDate(note.createdAt) }}
               </div>
               <p class="mt-1 whitespace-pre-wrap">{{ note.content }}</p>
             </li>
           </ul>
           <EmptyState v-else title="ยังไม่มีหมายเหตุ" description="เพิ่มหมายเหตุเพื่อติดตามความคืบหน้า" />
 
-          <div v-if="!isLocked" class="mt-4 rounded-[10px] border border-[#BFC9C3]/70 bg-[#F8FAFC] p-4">
-            <div class="grid gap-3 sm:grid-cols-3">
-              <div>
-                <label class="block text-[12px] font-medium text-[#181C1B]">ประเภท</label>
-                <div class="relative mt-1">
-                  <select
-                    v-model="noteForm.type"
-                    class="h-10 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[12px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
-                  >
-                    <option value="UPDATE">อัปเดต</option>
-                    <option value="PROBLEM">ปัญหา</option>
-                    <option value="SOLUTION">วิธีแก้</option>
-                  </select>
-                  <AdminIcon name="chevron-down" class="pointer-events-none absolute right-3 top-[10px] h-4 w-4 text-[#505F76]" />
-                </div>
-              </div>
-              <div class="sm:col-span-2">
-                <label class="block text-[12px] font-medium text-[#181C1B]">เนื้อหา</label>
-                <textarea
-                  v-model="noteForm.content"
-                  rows="2"
-                  maxlength="2000"
-                  class="mt-1 w-full resize-none rounded-[8px] border border-[#BFC9C3] bg-white px-3 py-2 text-[12px] leading-[18px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
-                />
-              </div>
+          <div v-if="!isReadOnly" class="mt-4 rounded-[10px] border border-[#BFC9C3]/70 bg-[#F8FAFC] p-4">
+            <div>
+              <label class="block text-[12px] font-medium text-[#181C1B]">เนื้อหาหมายเหตุ</label>
+              <textarea
+                v-model="noteForm.content"
+                rows="3"
+                maxlength="2000"
+                class="mt-1 w-full resize-none rounded-[8px] border border-[#BFC9C3] bg-white px-3 py-2 text-[12px] leading-[18px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
+              />
             </div>
             <p v-if="noteError" class="mt-2 text-[11px] text-red-700">{{ noteError }}</p>
             <div class="mt-3 flex justify-end">
