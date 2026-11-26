@@ -1,4 +1,4 @@
-// ข้อมูลหลัก (Dropdown) ที่ใช้ในฟอร์มโครงการ — F10
+// ข้อมูลพื้นฐาน (Dropdown) ที่ใช้ในฟอร์มโครงการ — F10
 export const MASTER_KINDS = Object.freeze({
   infra: {
     key: 'infra',

@@ -25,15 +25,6 @@ const form = reactive({
 
 const submitted = ref(false)
 
-// แจ้งเมื่อยังไม่มีข้อมูลหลักให้เลือก (ต้องไปเพิ่มที่หน้าหมู่บ้าน/ข้อมูลหลักก่อน)
-const missingPrerequisites = computed(() => {
-  const missing = []
-  if (!props.villages.length) missing.push('หมู่บ้าน')
-  if (!props.infraTypes.length) missing.push('ประเภทโครงสร้างพื้นฐาน')
-  if (!missing.length) return ''
-  return `ยังไม่มี${missing.join('และ')}ในระบบ — เพิ่มข้อมูลหลักก่อนสร้างโครงการ`
-})
-
 const errors = reactive({
   villageId: '',
   name: '',
@@ -41,6 +32,15 @@ const errors = reactive({
   structureStatus: '',
   objective: '',
   planYear: '',
+})
+
+// แจ้งเมื่อยังไม่มีข้อมูลหลักให้เลือก (ต้องไปเพิ่มที่หน้าหมู่บ้าน/ข้อมูลพื้นฐานก่อน)
+const missingPrerequisites = computed(() => {
+  const missing = []
+  if (!props.villages.length) missing.push('หมู่บ้าน')
+  if (!props.infraTypes.length) missing.push('ประเภทโครงสร้างพื้นฐาน')
+  if (!missing.length) return ''
+  return `ยังไม่มี${missing.join('และ')}ในระบบ — เพิ่มข้อมูลพื้นฐานก่อนสร้างโครงการ`
 })
 
 function validate() {
@@ -115,17 +115,17 @@ function submit() {
         </header>
 
         <form class="flex min-h-0 flex-1 flex-col" @submit.prevent="submit">
-          <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-2 pt-2">
+          <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-2 pt-2 space-y-3">
             <!-- หมู่บ้าน -->
             <div>
-              <label for="project-village" class="block text-[12px] font-medium text-[#181C1B]">
+              <label for="project-village" class="block text-[13px] font-medium text-[#181C1B]">
                 หมู่บ้าน <span class="text-[#B91C1C]">*</span>
               </label>
               <div class="relative mt-1">
                 <select
                   id="project-village"
                   v-model="form.villageId"
-                  class="h-9 w-full appearance-none rounded-[7px] border bg-white pl-3 pr-8 text-[12px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
+                  class="h-11 w-full appearance-none rounded-[8px] border bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
                   :class="submitted && errors.villageId ? 'border-[#B91C1C]' : 'border-[#BFC9C3]'"
                 >
                   <option value="">เลือกหมู่บ้าน</option>
@@ -135,7 +135,7 @@ function submit() {
                 </select>
                 <AdminIcon
                   name="chevron-down"
-                  class="pointer-events-none absolute right-2 top-[9px] h-4 w-4 text-[#505F76]"
+                  class="pointer-events-none absolute right-3 top-[13px] h-4 w-4 text-[#505F76]"
                 />
               </div>
               <p class="mt-[5px] flex items-start gap-1 text-[10px] leading-[15px] text-[#C2410C]">
@@ -147,82 +147,9 @@ function submit() {
               </p>
             </div>
 
-            <!-- ชื่อโครงการ -->
-            <div class="mt-3">
-              <label for="project-name" class="block text-[12px] font-medium text-[#181C1B]">
-                ชื่อโครงการ <span class="text-[#B91C1C]">*</span>
-              </label>
-              <input
-                id="project-name"
-                v-model="form.name"
-                type="text"
-                maxlength="200"
-                placeholder="เช่น ติดตั้งไฟส่องสว่างซอย 2 หรือ ก่อสร้างฝายชะลอน้ำ"
-                class="mt-1 h-9 w-full rounded-[7px] border bg-white px-3 text-[12px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
-                :class="submitted && errors.name ? 'border-[#B91C1C]' : 'border-[#BFC9C3]'"
-              />
-              <p v-if="submitted && errors.name" class="mt-1 text-[11px] text-[#B91C1C]">
-                {{ errors.name }}
-              </p>
-            </div>
-
-            <!-- ประเภท -->
-            <div class="mt-3">
-              <label for="project-type" class="block text-[12px] font-medium text-[#181C1B]">
-                ประเภทโครงสร้างพื้นฐาน <span class="text-[#B91C1C]">*</span>
-              </label>
-              <div class="relative mt-1">
-                <select
-                  id="project-type"
-                  v-model="form.infraTypeId"
-                  class="h-9 w-full appearance-none rounded-[7px] border bg-white pl-3 pr-8 text-[12px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
-                  :class="submitted && errors.infraTypeId ? 'border-[#B91C1C]' : 'border-[#BFC9C3]'"
-                >
-                  <option value="">เลือกหมวดหมู่พื้นฐาน</option>
-                  <option v-for="type in infraTypes" :key="type.infra_type_id" :value="type.infra_type_id">
-                    {{ type.type_name }}
-                  </option>
-                </select>
-                <AdminIcon
-                  name="chevron-down"
-                  class="pointer-events-none absolute right-2 top-[9px] h-4 w-4 text-[#505F76]"
-                />
-              </div>
-              <p v-if="submitted && errors.infraTypeId" class="mt-1 text-[11px] text-[#B91C1C]">
-                {{ errors.infraTypeId }}
-              </p>
-            </div>
-
-            <!-- สถานะสิ่งก่อสร้าง -->
-            <div class="mt-3">
-              <label for="project-structure-status" class="block text-[12px] font-medium text-[#181C1B]">
-                สถานะปัจจุบันของสิ่งก่อสร้าง <span class="text-[#B91C1C]">*</span>
-              </label>
-              <div class="relative mt-1">
-                <select
-                  id="project-structure-status"
-                  v-model="form.structureStatus"
-                  class="h-9 w-full appearance-none rounded-[7px] border bg-white pl-3 pr-8 text-[12px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
-                  :class="submitted && errors.structureStatus ? 'border-[#B91C1C]' : 'border-[#BFC9C3]'"
-                >
-                  <option value="">เลือกสถานะของสิ่งก่อสร้าง</option>
-                  <option v-for="option in STRUCTURE_STATUS_OPTIONS" :key="option" :value="option">
-                    {{ option }}
-                  </option>
-                </select>
-                <AdminIcon
-                  name="chevron-down"
-                  class="pointer-events-none absolute right-2 top-[9px] h-4 w-4 text-[#505F76]"
-                />
-              </div>
-              <p v-if="submitted && errors.structureStatus" class="mt-1 text-[11px] text-[#B91C1C]">
-                {{ errors.structureStatus }}
-              </p>
-            </div>
-
             <!-- ปีแผน -->
-            <div class="mt-3">
-              <label for="project-year" class="block text-[12px] font-medium text-[#181C1B]">
+            <div>
+              <label for="project-year" class="block text-[13px] font-medium text-[#181C1B]">
                 ปีแผน (พ.ศ.) <span class="text-[#B91C1C]">*</span>
               </label>
               <input
@@ -231,7 +158,7 @@ function submit() {
                 type="number"
                 min="2400"
                 max="2700"
-                class="mt-1 h-9 w-full rounded-[7px] border bg-white px-3 text-[12px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
+                class="mt-1 h-11 w-full rounded-[8px] border bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
                 :class="submitted && errors.planYear ? 'border-[#B91C1C]' : 'border-[#BFC9C3]'"
               />
               <p class="mt-[4px] text-[10px] leading-[15px] text-[#707974]">
@@ -242,9 +169,82 @@ function submit() {
               </p>
             </div>
 
+            <!-- ชื่อโครงการ -->
+            <div>
+              <label for="project-name" class="block text-[13px] font-medium text-[#181C1B]">
+                ชื่อโครงการ <span class="text-[#B91C1C]">*</span>
+              </label>
+              <input
+                id="project-name"
+                v-model="form.name"
+                type="text"
+                maxlength="200"
+                placeholder="เช่น ติดตั้งไฟส่องสว่างซอย 2 หรือ ก่อสร้างฝายชะลอน้ำ"
+                class="mt-1 h-11 w-full rounded-[8px] border bg-white px-3 text-[13px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
+                :class="submitted && errors.name ? 'border-[#B91C1C]' : 'border-[#BFC9C3]'"
+              />
+              <p v-if="submitted && errors.name" class="mt-1 text-[11px] text-[#B91C1C]">
+                {{ errors.name }}
+              </p>
+            </div>
+
+            <!-- ประเภท -->
+            <div>
+              <label for="project-type" class="block text-[13px] font-medium text-[#181C1B]">
+                ประเภทโครงสร้างพื้นฐาน <span class="text-[#B91C1C]">*</span>
+              </label>
+              <div class="relative mt-1">
+                <select
+                  id="project-type"
+                  v-model="form.infraTypeId"
+                  class="h-11 w-full appearance-none rounded-[8px] border bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
+                  :class="submitted && errors.infraTypeId ? 'border-[#B91C1C]' : 'border-[#BFC9C3]'"
+                >
+                  <option value="">เลือกหมวดหมู่พื้นฐาน</option>
+                  <option v-for="type in infraTypes" :key="type.infra_type_id" :value="type.infra_type_id">
+                    {{ type.type_name }}
+                  </option>
+                </select>
+                <AdminIcon
+                  name="chevron-down"
+                  class="pointer-events-none absolute right-3 top-[13px] h-4 w-4 text-[#505F76]"
+                />
+              </div>
+              <p v-if="submitted && errors.infraTypeId" class="mt-1 text-[11px] text-[#B91C1C]">
+                {{ errors.infraTypeId }}
+              </p>
+            </div>
+
+            <!-- สถานะสิ่งก่อสร้าง -->
+            <div>
+              <label for="project-structure-status" class="block text-[13px] font-medium text-[#181C1B]">
+                สถานะปัจจุบันของสิ่งก่อสร้าง <span class="text-[#B91C1C]">*</span>
+              </label>
+              <div class="relative mt-1">
+                <select
+                  id="project-structure-status"
+                  v-model="form.structureStatus"
+                  class="h-11 w-full appearance-none rounded-[8px] border bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
+                  :class="submitted && errors.structureStatus ? 'border-[#B91C1C]' : 'border-[#BFC9C3]'"
+                >
+                  <option value="">เลือกสถานะของสิ่งก่อสร้าง</option>
+                  <option v-for="option in STRUCTURE_STATUS_OPTIONS" :key="option" :value="option">
+                    {{ option }}
+                  </option>
+                </select>
+                <AdminIcon
+                  name="chevron-down"
+                  class="pointer-events-none absolute right-3 top-[13px] h-4 w-4 text-[#505F76]"
+                />
+              </div>
+              <p v-if="submitted && errors.structureStatus" class="mt-1 text-[11px] text-[#B91C1C]">
+                {{ errors.structureStatus }}
+              </p>
+            </div>
+
             <!-- วัตถุประสงค์ -->
-            <div class="mt-3">
-              <label for="project-objective" class="block text-[12px] font-medium text-[#181C1B]">
+            <div>
+              <label for="project-objective" class="block text-[13px] font-medium text-[#181C1B]">
                 วัตถุประสงค์ <span class="text-[#B91C1C]">*</span>
               </label>
               <textarea
@@ -253,7 +253,7 @@ function submit() {
                 rows="3"
                 maxlength="1000"
                 placeholder="ระบุปัญหาที่เกิดขึ้น ผลกระทบต่อชาวบ้าน และเหตุผลความจำเป็น…"
-                class="mt-1 w-full resize-none rounded-[7px] border bg-white px-3 py-2 text-[12px] leading-[19px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
+                class="mt-1 w-full resize-none rounded-[8px] border bg-white px-3 py-2 text-[13px] leading-[19px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
                 :class="submitted && errors.objective ? 'border-[#B91C1C]' : 'border-[#BFC9C3]'"
               />
               <p class="mt-[4px] flex items-start gap-1 text-[10px] leading-[15px] text-[#707974]">

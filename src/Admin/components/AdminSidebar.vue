@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { logout } from '@/store/auth'
 import { MASTER_KINDS, MASTER_ORDER } from '@/shared/constants/masterData'
@@ -13,26 +13,40 @@ const router = useRouter()
 const items = [
   { to: '/admin/dashboard', label: 'แดชบอร์ดภาพรวม', icon: 'dashboard' },
   { to: '/admin/projects', label: 'จัดการโครงการ', icon: 'clipboard' },
-  { to: '/admin/villages', label: 'หมู่บ้าน', icon: 'seal-check' },
   {
-    label: 'ข้อมูลหลัก',
+    label: 'ข้อมูลพื้นฐาน',
     icon: 'database',
-    base: '/admin/master-data',
-    children: MASTER_ORDER.map((key) => ({
-      to: MASTER_KINDS[key].path,
-      label: MASTER_KINDS[key].summaryLabel,
-    })),
+    children: [
+      { to: '/admin/villages', label: 'หมู่บ้าน' },
+      ...MASTER_ORDER.map((key) => ({
+        to: MASTER_KINDS[key].path,
+        label: MASTER_KINDS[key].summaryLabel,
+      })),
+    ],
   },
 ]
 
-const masterBase = '/admin/master-data'
-const isMasterOpen = computed(() => route.path.startsWith(masterBase))
+// กลุ่ม "ข้อมูลพื้นฐาน" ครอบคลุมทั้งหมู่บ้านและข้อมูลหลัก
+const inSection = computed(
+  () =>
+    route.path === '/admin/villages' ||
+    route.path.startsWith('/admin/villages/') ||
+    route.path.startsWith('/admin/master-data'),
+)
 
-function isChildActive(path) {
-  return route.path === path
+const open = ref(false)
+// กางอัตโนมัติเมื่ออยู่ในกลุ่ม แต่ยังให้ผู้ใช้หุบเองได้ (watch ไม่บังคับปิด)
+watch(inSection, (value) => {
+  if (value) open.value = true
+}, { immediate: true })
+function toggleGroup() {
+  open.value = !open.value
 }
 
-// เมนูหลักถือว่า active เมื่ออยู่หน้าลูกของเมนูนั้นด้วย (เช่น /admin/projects/:id)
+function isChildActive(path) {
+  return route.path === path || route.path.startsWith(`${path}/`)
+}
+
 function isItemActive(item) {
   return route.path === item.to || route.path.startsWith(`${item.to}/`)
 }
@@ -70,9 +84,11 @@ async function handleLogout() {
         </RouterLink>
 
         <div v-else>
-          <RouterLink
-            :to="item.base"
-            class="flex items-center gap-3 rounded-[10px] px-3 py-[9px] text-[13px] leading-none text-[#181C1B] transition hover:bg-[#F1F4F2] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5C48]/30"
+          <button
+            type="button"
+            :aria-expanded="open"
+            class="flex w-full items-center gap-3 rounded-[10px] px-3 py-[9px] text-[13px] leading-none text-[#181C1B] transition hover:bg-[#F1F4F2] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D5C48]/30"
+            @click="toggleGroup"
           >
             <AdminIcon :name="item.icon" class="h-[16px] w-[16px] shrink-0" />
             <span>{{ item.label }}</span>
@@ -80,12 +96,12 @@ async function handleLogout() {
               name="chevron-down"
               :class="[
                 'ml-auto h-[14px] w-[14px] shrink-0 transition-transform',
-                isMasterOpen ? 'rotate-180' : '',
+                open ? 'rotate-180' : '',
               ]"
             />
-          </RouterLink>
+          </button>
 
-          <div v-if="isMasterOpen" class="mt-[2px] space-y-[2px]">
+          <div v-if="open" class="mt-[2px] space-y-[2px]">
             <RouterLink
               v-for="child in item.children"
               :key="child.to"

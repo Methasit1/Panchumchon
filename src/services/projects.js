@@ -42,6 +42,7 @@ function normalizeProject(row) {
     villageId: row.village?.village_id ?? null,
     villageName: row.village?.village_name ?? '',
     mooNo: row.village?.moo_no ?? null,
+    infraTypeId: row.infra_type?.infra_type_id ?? null,
     typeName: row.infra_type?.type_name ?? '',
     budget: Number(budget?.budget_amount ?? 0),
     location: {
@@ -60,6 +61,187 @@ function normalizeProject(row) {
     agencyIds: (row.project_agency ?? []).map((item) => item.agency_id),
     attachmentCount: (row.project_attachment ?? []).length,
   }
+}
+
+const PROJECT_DETAIL_SELECT = `
+  project_id,
+  project_code,
+  project_name,
+  objective,
+  structure_status,
+  progress_status,
+  progress_percent,
+  plan_year,
+  cancel_reason,
+  created_at,
+  village:village_id ( village_id, village_name, moo_no ),
+  infra_type:infra_type_id ( infra_type_id, type_name ),
+  project_location_budget ( latitude, longitude, location_text, budget_amount, fiscal_year, funding_source_id, funding_source:funding_source_id ( funding_source_id, source_name ) ),
+  project_plan ( planned_start, planned_end, actual_start, actual_end ),
+  project_agency ( agency_id, agency:agency_id ( agency_id, agency_name ) ),
+  project_attachment ( attachment_id, doc_type_id, file_name, file_path, uploaded_at, doc_type:doc_type_id ( doc_type_id, doc_type_name ) ),
+  project_note ( note_id, note_type, content, created_at )
+`
+
+export async function fetchProject(projectId) {
+  const { data, error } = await supabase
+    .from('project')
+    .select(PROJECT_DETAIL_SELECT)
+    .eq('project_id', projectId)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!data) throw new Error('ไม่พบโครงการนี้')
+
+  const normalized = normalizeProject(data)
+  const budget = Array.isArray(data.project_location_budget)
+    ? (data.project_location_budget[0] ?? null)
+    : data.project_location_budget
+  const plan = Array.isArray(data.project_plan) ? (data.project_plan[0] ?? null) : data.project_plan
+
+  normalized.location.fundingSourceName = budget?.funding_source?.source_name ?? ''
+  normalized.agencies = (data.project_agency ?? []).map((item) => ({
+    id: item.agency_id,
+    name: item.agency?.agency_name ?? '',
+  }))
+  normalized.attachments = (data.project_attachment ?? []).map((item) => ({
+    id: item.attachment_id,
+    docTypeId: item.doc_type_id,
+    docTypeName: item.doc_type?.doc_type_name ?? '',
+    fileName: item.file_name,
+    filePath: item.file_path,
+    uploadedAt: item.uploaded_at,
+  }))
+  normalized.notes = (data.project_note ?? []).map((item) => ({
+    id: item.note_id,
+    type: item.note_type,
+    content: item.content,
+    createdAt: item.created_at,
+  }))
+
+  return normalized
+}
+
+export async function updateProjectCore(projectId, payload) {
+  const { error } = await supabase
+    .from('project')
+    .update({
+      project_name: payload.name.trim(),
+      infra_type_id: payload.infraTypeId,
+      objective: payload.objective.trim(),
+      structure_status: payload.structureStatus,
+      plan_year: payload.planYear,
+    })
+    .eq('project_id', projectId)
+
+  if (error) throw error
+}
+
+export async function upsertProjectLocationBudget(projectId, payload) {
+  const { error } = await supabase
+    .from('project_location_budget')
+    .upsert(
+      {
+        project_id: projectId,
+        latitude: payload.latitude === '' || payload.latitude === null ? null : Number(payload.latitude),
+        longitude: payload.longitude === '' || payload.longitude === null ? null : Number(payload.longitude),
+        location_text: payload.locationText?.trim() || null,
+        budget_amount: payload.budgetAmount === '' || payload.budgetAmount === null ? null : Number(payload.budgetAmount),
+        fiscal_year: payload.fiscalYear === '' || payload.fiscalYear === null ? null : Number(payload.fiscalYear),
+        funding_source_id: payload.fundingSourceId === '' || payload.fundingSourceId === null ? null : Number(payload.fundingSourceId),
+      },
+      { onConflict: 'project_id' },
+    )
+
+  if (error) throw error
+}
+
+export async function upsertProjectPlan(projectId, payload) {
+  const { error } = await supabase
+    .from('project_plan')
+    .upsert(
+      {
+        project_id: projectId,
+        planned_start: payload.plannedStart || null,
+        planned_end: payload.plannedEnd || null,
+        actual_start: payload.actualStart || null,
+        actual_end: payload.actualEnd || null,
+      },
+      { onConflict: 'project_id' },
+    )
+
+  if (error) throw error
+}
+
+export async function setProjectAgencies(projectId, agencyIds) {
+  const { error: deleteError } = await supabase
+    .from('project_agency')
+    .delete()
+    .eq('project_id', projectId)
+
+  if (deleteError) throw deleteError
+
+  if (agencyIds.length) {
+    const rows = agencyIds.map((agencyId) => ({ project_id: projectId, agency_id: agencyId }))
+    const { error } = await supabase.from('project_agency').insert(rows)
+    if (error) throw error
+  }
+}
+
+export async function addProjectNote(projectId, content, noteType = 'UPDATE') {
+  const { data, error } = await supabase
+    .from('project_note')
+    .insert({ project_id: projectId, note_type: noteType, content: content.trim() })
+    .select('note_id, note_type, content, created_at')
+    .single()
+
+  if (error) throw error
+  return {
+    id: data.note_id,
+    type: data.note_type,
+    content: data.content,
+    createdAt: data.created_at,
+  }
+}
+
+export async function uploadProjectAttachment(projectId, docTypeId, file) {
+  const filePath = `${projectId}/${Date.now()}-${file.name}`
+  const { error: uploadError } = await supabase.storage
+    .from('project-docs')
+    .upload(filePath, file)
+
+  if (uploadError) throw uploadError
+
+  const { data, error } = await supabase
+    .from('project_attachment')
+    .insert({
+      project_id: projectId,
+      doc_type_id: docTypeId,
+      file_name: file.name,
+      file_path: filePath,
+    })
+    .select('attachment_id, doc_type_id, file_name, file_path, uploaded_at, doc_type:doc_type_id ( doc_type_id, doc_type_name )')
+    .single()
+
+  if (error) throw error
+  return {
+    id: data.attachment_id,
+    docTypeId: data.doc_type_id,
+    docTypeName: data.doc_type?.doc_type_name ?? '',
+    fileName: data.file_name,
+    filePath: data.file_path,
+    uploadedAt: data.uploaded_at,
+  }
+}
+
+// สร้าง signed URL สำหรับดู/ดาวน์โหลดไฟล์แนบ (bucket เป็น private)
+export async function getAttachmentSignedUrl(filePath, expiresIn = 3600) {
+  const { data, error } = await supabase.storage
+    .from('project-docs')
+    .createSignedUrl(filePath, expiresIn)
+
+  if (error) throw error
+  return data?.signedUrl ?? ''
 }
 
 export async function fetchManageProjects(year) {
@@ -135,11 +317,11 @@ function todayIso() {
   return local.toISOString().slice(0, 10)
 }
 
-// BR-13/BR-14: รออนุมัติ → กำลังดำเนินการ เริ่มที่ 1%
+// BR-13/BR-14: รออนุมัติ → กำลังดำเนินการ (ไม่ใช้เปอร์เซ็นต์ความคืบหน้าแล้ว)
 export async function startProject(projectId) {
   const { error } = await supabase
     .from('project')
-    .update({ progress_status: PROJECT_STATUS.IN_PROGRESS, progress_percent: 1 })
+    .update({ progress_status: PROJECT_STATUS.IN_PROGRESS })
     .eq('project_id', projectId)
 
   if (error) throw error
@@ -151,11 +333,11 @@ export async function startProject(projectId) {
   if (planError) throw planError
 }
 
-// BR-14: เสร็จสิ้น = 100%
+// BR-14: เสร็จสิ้นโครงการ (ไม่ใช้เปอร์เซ็นต์ความคืบหน้าแล้ว)
 export async function completeProject(projectId) {
   const { error } = await supabase
     .from('project')
-    .update({ progress_status: PROJECT_STATUS.COMPLETED, progress_percent: 100 })
+    .update({ progress_status: PROJECT_STATUS.COMPLETED })
     .eq('project_id', projectId)
 
   if (error) throw error

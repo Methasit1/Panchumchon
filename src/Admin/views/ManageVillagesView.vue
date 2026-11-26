@@ -60,6 +60,7 @@ watch(
   (value) => {
     if (value === '1') openCreate()
   },
+  { immediate: true },
 )
 
 function openCreate() {

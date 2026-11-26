@@ -11,7 +11,7 @@ const props = defineProps({
   project: { type: Object, required: true },
 })
 
-const emit = defineEmits(['start', 'complete', 'cancel', 'delete', 'edit'])
+const emit = defineEmits(['start', 'complete', 'cancel', 'delete', 'edit', 'view'])
 
 const menuOpen = ref(false)
 
@@ -41,7 +41,9 @@ const guide = computed(() => PROJECT_STATUS_GUIDE[props.project.status] ?? '')
 
 function run(action) {
   menuOpen.value = false
-  emit(action, props.project)
+  if (action === 'view') emit('view', props.project)
+  else if (action === 'edit') emit('edit', props.project)
+  else emit(action, props.project)
 }
 </script>
 
@@ -109,54 +111,59 @@ function run(action) {
       </p>
 
       <template v-if="!isLocked">
-        <button
-          type="button"
-          class="h-8 rounded-[7px] border border-[#BFC9C3] bg-white px-3 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2]"
-          @click="emit('edit', project)"
-        >
-          การจัดการ
-        </button>
-
         <div class="relative">
-          <template v-if="canCancel || canDelete">
+          <button
+            type="button"
+            class="flex h-8 items-center gap-1 rounded-[7px] border border-[#BFC9C3] bg-white px-3 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2]"
+            aria-label="การจัดการ"
+            :aria-expanded="menuOpen"
+            @click="menuOpen = !menuOpen"
+          >
+            การจัดการ
+            <AdminIcon name="chevron-down" class="h-3.5 w-3.5" />
+          </button>
+
+          <template v-if="menuOpen">
             <button
               type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-[7px] border border-[#BFC9C3] bg-white text-[#505F76] transition hover:bg-[#F1F4F2]"
-              aria-label="ตัวเลือกเพิ่มเติม"
-              :aria-expanded="menuOpen"
-              @click="menuOpen = !menuOpen"
+              class="fixed inset-0 z-10 cursor-default"
+              aria-label="ปิดเมนู"
+              @click="menuOpen = false"
+            />
+            <div
+              class="absolute right-0 top-[36px] z-20 w-[180px] overflow-hidden rounded-[8px] border border-[#BFC9C3] bg-white py-1 shadow-[0_8px_20px_rgba(15,23,42,0.12)]"
             >
-              <AdminIcon name="dots" class="h-4 w-4" />
-            </button>
-
-            <template v-if="menuOpen">
               <button
                 type="button"
-                class="fixed inset-0 z-10 cursor-default"
-                aria-label="ปิดเมนู"
-                @click="menuOpen = false"
-              />
-              <div
-                class="absolute right-0 top-[36px] z-20 w-[168px] overflow-hidden rounded-[8px] border border-[#BFC9C3] bg-white py-1 shadow-[0_8px_20px_rgba(15,23,42,0.12)]"
+                class="block w-full px-3 py-[7px] text-left text-[12px] text-[#181C1B] hover:bg-[#F1F4F2]"
+                @click="run('view')"
               >
-                <button
-                  v-if="canCancel"
-                  type="button"
-                  class="block w-full px-3 py-[7px] text-left text-[12px] text-[#B91C1C] hover:bg-[#FEF2F2]"
-                  @click="run('cancel')"
-                >
-                  ยกเลิกโครงการ
-                </button>
-                <button
-                  v-if="canDelete"
-                  type="button"
-                  class="block w-full px-3 py-[7px] text-left text-[12px] text-[#B91C1C] hover:bg-[#FEF2F2]"
-                  @click="run('delete')"
-                >
-                  ลบโครงการ
-                </button>
-              </div>
-            </template>
+                ดูรายละเอียด
+              </button>
+              <button
+                type="button"
+                class="block w-full px-3 py-[7px] text-left text-[12px] text-[#181C1B] hover:bg-[#F1F4F2]"
+                @click="run('edit')"
+              >
+                แก้ไขโครงการ
+              </button>
+              <button
+                v-if="canCancel"
+                type="button"
+                class="block w-full px-3 py-[7px] text-left text-[12px] text-[#B91C1C] hover:bg-[#FEF2F2]"
+                @click="run('cancel')"
+              >
+                ยกเลิกโครงการ
+              </button>
+              <button
+                v-if="canDelete"
+                type="button"
+                class="block w-full px-3 py-[7px] text-left text-[12px] text-[#B91C1C] hover:bg-[#FEF2F2]"
+                @click="run('delete')"
+              >
+                ลบโครงการ
+              </button>
+            </div>
           </template>
         </div>
 
