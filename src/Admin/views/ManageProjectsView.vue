@@ -112,6 +112,7 @@ watch(
   (value) => {
     if (value === '1') createOpen.value = true
   },
+  { immediate: true },
 )
 
 function showNotice(message) {
