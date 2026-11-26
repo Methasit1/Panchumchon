@@ -789,6 +789,9 @@ const statusLabel = computed(() => project.value?.status ?? '')
                     <option v-for="doc in docTypes" :key="doc.doc_type_id" :value="doc.doc_type_id">
                       {{ doc.doc_type_name }}
                     </option>
+                    <option v-if="!docTypes.length" value="" disabled>
+                      (ยังไม่มีประเภทเอกสาร — รัน supabase_doc_types.sql)
+                    </option>
                   </select>
                   <AdminIcon name="chevron-down" class="pointer-events-none absolute right-3 top-[10px] h-4 w-4 text-[#505F76]" />
                 </div>
