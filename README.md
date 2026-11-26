@@ -44,7 +44,7 @@ git pull origin main   # อัปเดตฐานจาก main ก่อน�
 ## ตั้งค่า Supabase
 
 1. สร้าง project ใน Supabase แล้วรัน SQL ตามลำดับ:
-   `supabase_tables.sql` → `supabase_policies.sql` → `supabase_doc_types.sql` → `supabase_storage.sql`
+   `supabase_tables.sql` → `supabase_policies.sql` (schema/DDL อยู่ใน Supabase แล้ว ไม่จำเป็นต้องเก็บใน repo)
 2. สร้าง auth user สำหรับพี่เอ็มใน **Authentication → Users** (ใช้ email/password)
 3. เพิ่มแถวใน `user_account` ด้วย `user_id` = id ของ auth user, `username`, `display_name`
    และ `role_id` ของแถว `ADMIN` ในตาราง `role` (ต้อง `is_active = true`)
