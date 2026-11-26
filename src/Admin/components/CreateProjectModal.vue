@@ -25,7 +25,7 @@ const form = reactive({
 
 const submitted = ref(false)
 
-// แจ้งเมื่อยังไม่มีข้อมูลหลักให้เลือก (ต้องไปเพิ่มที่หน้าหมู่บ้าน/ข้อมูลหลักก่อน)
+// แจ้งเมื่อยังไม่มีข้อมูลพื้นฐานให้เลือก (ต้องไปเพิ่มที่หน้าหมู่บ้าน/ข้อมูลพื้นฐานก่อน)
 const missingPrerequisites = computed(() => {
   const missing = []
   if (!props.villages.length) missing.push('หมู่บ้าน')

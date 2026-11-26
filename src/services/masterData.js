@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-// ตาราง + คอลัมน์ของข้อมูลหลักแต่ละชนิด (F10)
+// ตาราง + คอลัมน์ของข้อมูลพื้นฐานแต่ละชนิด (F10)
 const TABLES = {
   infra: { table: 'infra_type', id: 'infra_type_id', name: 'type_name' },
   agency: { table: 'agency', id: 'agency_id', name: 'agency_name' },
@@ -9,7 +9,7 @@ const TABLES = {
 
 function configOf(kind) {
   const config = TABLES[kind]
-  if (!config) throw new Error('ไม่รู้จักชนิดข้อมูลหลัก')
+  if (!config) throw new Error('ไม่รู้จักชนิดข้อมูลพื้นฐาน')
   return config
 }
 
@@ -26,7 +26,7 @@ function cleanName(name) {
   return value
 }
 
-// จำนวนโครงการ (ไม่นับที่ถูกลบ) แยกตามตัวเลือกของข้อมูลหลักแต่ละชนิด
+// จำนวนโครงการ (ไม่นับที่ถูกลบ) แยกตามตัวเลือกของข้อมูลพื้นฐานแต่ละชนิด
 async function fetchActiveProjectIds() {
   const { data, error } = await supabase
     .from('project')

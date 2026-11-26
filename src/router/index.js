@@ -140,7 +140,7 @@ const routes = [
         meta: {
           masterKind: 'infra',
           title: 'ประเภทโครงสร้างพื้นฐาน',
-          feature: 'F10 · ข้อมูลหลัก',
+          feature: 'F10 · ข้อมูลพื้นฐาน',
           description: 'ตัวเลือกประเภทงานที่ใช้ตอนกรอกโครงการ',
         },
       },
@@ -151,7 +151,7 @@ const routes = [
         meta: {
           masterKind: 'agency',
           title: 'หน่วยงานผู้รับผิดชอบ',
-          feature: 'F10 · ข้อมูลหลัก',
+          feature: 'F10 · ข้อมูลพื้นฐาน',
           description: 'ตัวเลือกหน่วยงานที่ใช้ตอนกรอกโครงการ',
         },
       },
@@ -162,7 +162,7 @@ const routes = [
         meta: {
           masterKind: 'funding',
           title: 'แหล่งเงิน',
-          feature: 'F10 · ข้อมูลหลัก',
+          feature: 'F10 · ข้อมูลพื้นฐาน',
           description: 'ตัวเลือกแหล่งเงินที่ใช้ตอนกรอกโครงการ',
         },
       },
