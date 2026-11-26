@@ -22,3 +22,36 @@ export async function fetchInfraTypeOptions() {
   if (error) throw error
   return data ?? []
 }
+
+export async function fetchAgencyOptions() {
+  const { data, error } = await supabase
+    .from('agency')
+    .select('agency_id, agency_name')
+    .eq('is_active', true)
+    .order('agency_name', { ascending: true })
+
+  if (error) throw error
+  return data ?? []
+}
+
+export async function fetchFundingSourceOptions() {
+  const { data, error } = await supabase
+    .from('funding_source')
+    .select('funding_source_id, source_name')
+    .eq('is_active', true)
+    .order('source_name', { ascending: true })
+
+  if (error) throw error
+  return data ?? []
+}
+
+export async function fetchDocTypeOptions() {
+  const { data, error } = await supabase
+    .from('doc_type')
+    .select('doc_type_id, doc_type_name')
+    .eq('is_active', true)
+    .order('doc_type_name', { ascending: true })
+
+  if (error) throw error
+  return data ?? []
+}

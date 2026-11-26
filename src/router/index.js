@@ -7,6 +7,7 @@ import DashboardView from '@/Admin/views/DashboardView.vue'
 import ManageProjectsView from '@/Admin/views/ManageProjectsView.vue'
 import ManageVillagesView from '@/Admin/views/ManageVillagesView.vue'
 import MasterDataView from '@/Admin/views/MasterDataView.vue'
+import ProjectFormView from '@/Admin/views/ProjectFormView.vue'
 
 // เส้นทางจัดตามหน้าจอในข้อ 12 ของ Proposal
 // ฝั่ง admin ใช้ AdminLayout เป็นแม่ เพื่อให้ sidebar/header ใช้ร่วมทุกหน้า
@@ -105,7 +106,7 @@ const routes = [
       {
         path: 'projects/:projectId',
         name: 'admin-project-form',
-        component: RoutePlaceholder,
+        component: ProjectFormView,
         meta: {
           title: 'เริ่มดำเนินการ / แก้ไขโครงการ (แท็บ 1–3)',
           feature: 'F04 · F05 · พื้นที่ งบประมาณ และแผนการดำเนินงาน',
