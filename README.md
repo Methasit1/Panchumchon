@@ -44,15 +44,14 @@ git pull origin main   # อัปเดตฐานจาก main ก่อน�
 
 1. สร้าง project ใน Supabase แล้วรัน SQL ตามลำดับ:
    `supabase_tables.sql` → `supabase_policies.sql`
-2. (ทางเลือก สำหรับเดโม) รัน `supabase_seed_demo.sql` ใน SQL Editor
-   — ใส่ 3 หมู่บ้าน, 5 ประเภทงาน, แหล่งเงิน/หน่วยงาน/ประเภทเอกสาร,
-   5 โครงการปีงบ 2569 (งบรวม 1,940,000 บาท) และตั้งตัวนับรหัสไว้ที่ INF-69006
-   รันซ้ำได้ ไม่สร้างข้อมูลซ้ำ
-3. สร้าง auth user สำหรับพี่เอ็มใน **Authentication → Users** (ใช้ email/password)
-4. เพิ่มแถวใน `user_account` ด้วย `user_id` = id ของ auth user, `username`, `display_name`
+2. สร้าง auth user สำหรับพี่เอ็มใน **Authentication → Users** (ใช้ email/password)
+3. เพิ่มแถวใน `user_account` ด้วย `user_id` = id ของ auth user, `username`, `display_name`
    และ `role_id` ของแถว `ADMIN` ในตาราง `role` (ต้อง `is_active = true`)
    — ไม่มีไฟล์ seed บัญชีตามที่ตกลงกัน
-5. คัดลอก `.env.example` เป็น `.env.local` แล้วใส่ URL และ anon key ของ project
+4. คัดลอก `.env.example` เป็น `.env.local` แล้วใส่ URL และ anon key ของ project
+
+> ถ้ามีข้อมูลทดสอบค้างอยู่และต้องการล้างทั้งหมด (ยกเว้น `role` และ `user_account`)
+> ให้รัน `supabase_reset_data.sql` ใน SQL Editor ก่อนเริ่มใส่ข้อมูลจริง
 
 ```bash
 cp .env.example .env.local
@@ -122,8 +121,8 @@ npm run dev
 เปิด `http://localhost:5173/admin/dashboard` หลัง login (ถ้ายังไม่ login ระบบจะพาไปหน้า Login
 และกลับมาที่เดิมหลังเข้าสำเร็จ)
 
-- **ฐานข้อมูลยังว่าง** → KPI และการ์ดหมู่บ้านจะแสดง 0 ทั้งหมด
-  (ถ้าต้องการข้อมูลเดโม ให้รัน `supabase_seed_demo.sql`)
+- **ฐานข้อมูลว่าง** → KPI และการ์ดหมู่บ้านจะแสดง 0 ทั้งหมด
+  (เพิ่มข้อมูลจริงผ่านหน้าเว็บ หรือรัน `supabase_reset_data.sql` ถ้าต้องการล้างข้อมูลทดสอบ)
 - ตัวเลข KPI อ้างข้อมูลทั้งปีงบประมาณที่เลือก ส่วนตัวกรองหมู่บ้าน/สถานะ/คำค้นมีผลกับตารางเท่านั้น
 - การ์ดหมู่บ้านแสดงทุกหมู่บ้านที่ `is_active = true` รวมหมู่บ้านที่ยังไม่มีโครงการในปีนั้น
 - ปุ่ม "เสนอก่อการใหม่ให้หมู่บ้านนี้" แสดงตามดีไซน์แต่ยังปิดใช้งาน (อยู่นอกขอบเขต Proposal ข้อ 15)
