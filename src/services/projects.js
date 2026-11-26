@@ -234,6 +234,16 @@ export async function uploadProjectAttachment(projectId, docTypeId, file) {
   }
 }
 
+// สร้าง signed URL สำหรับดู/ดาวน์โหลดไฟล์แนบ (bucket เป็น private)
+export async function getAttachmentSignedUrl(filePath, expiresIn = 3600) {
+  const { data, error } = await supabase.storage
+    .from('project-docs')
+    .createSignedUrl(filePath, expiresIn)
+
+  if (error) throw error
+  return data?.signedUrl ?? ''
+}
+
 export async function fetchManageProjects(year) {
   const { data, error } = await supabase
     .from('project')

@@ -14,6 +14,7 @@ import {
   updateProjectCore,
   upsertProjectLocationBudget,
   upsertProjectPlan,
+  getAttachmentSignedUrl,
   uploadProjectAttachment,
 } from '@/services/projects'
 import {
@@ -122,6 +123,24 @@ async function submitPhotos() {
 }
 const attachmentSaving = ref(false)
 const attachmentError = ref('')
+const previewUrl = ref('')
+const previewName = ref('')
+const previewLoading = ref(false)
+
+async function openPreview(attachment) {
+  previewLoading.value = true
+  try {
+    const url = await getAttachmentSignedUrl(attachment.filePath)
+    previewUrl.value = url
+    previewName.value = attachment.fileName
+    // เปิดในแท็บใหม่
+    window.open(url, '_blank', 'noopener,noreferrer')
+  } catch (err) {
+    showSaveMessage(err.message, true)
+  } finally {
+    previewLoading.value = false
+  }
+}
 
 const isLocked = computed(
   () =>
@@ -772,8 +791,18 @@ const statusLabel = computed(() => project.value?.status ?? '')
               :key="attachment.id"
               class="flex items-center justify-between gap-2 rounded-[8px] border border-[#E3E8E5] bg-[#F8FAFC] px-3 py-2 text-[12px] text-[#181C1B]"
             >
-              <span class="truncate">{{ attachment.fileName }}</span>
-              <span class="shrink-0 text-[10px] text-[#707974]">{{ attachment.docTypeName }}</span>
+              <div class="min-w-0">
+                <p class="truncate">{{ attachment.fileName }}</p>
+                <p class="text-[10px] text-[#707974]">{{ attachment.docTypeName }}</p>
+              </div>
+              <button
+                type="button"
+                class="shrink-0 rounded-[6px] border border-[#BFC9C3] bg-white px-2 py-1 text-[11px] text-[#181C1B] transition hover:bg-[#F1F4F2] disabled:opacity-50"
+                :disabled="previewLoading"
+                @click="openPreview(attachment)"
+              >
+                ดูตัวอย่าง
+              </button>
             </li>
           </ul>
           <EmptyState v-else title="ยังไม่มีเอกสารแนบ" description="อัปโหลดไฟล์อย่างน้อย 1 ไฟล์ก่อนเริ่มดำเนินการ" />
