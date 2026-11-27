@@ -130,5 +130,10 @@ defineProps({
     <template v-else-if="name === 'close'">
       <path d="m6 6 12 12M18 6 6 18" />
     </template>
+
+    <template v-else-if="name === 'edit'">
+      <path d="M4 20h4l10.5-10.5a1.5 1.5 0 0 0-4-4L4 16v4Z" />
+      <path d="m13.5 6.5 4 4" />
+    </template>
   </svg>
 </template>

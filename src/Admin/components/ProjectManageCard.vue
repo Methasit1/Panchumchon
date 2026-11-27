@@ -139,14 +139,7 @@ function run(action) {
             >
               ดูรายละเอียด
             </button>
-            <button
-              v-if="!isLocked"
-              type="button"
-              class="block w-full px-3 py-[7px] text-left text-[12px] text-[#181C1B] hover:bg-[#F1F4F2]"
-              @click="run('edit')"
-            >
-              แก้ไขโครงการ
-            </button>
+
             <button
               v-if="canCancel"
               type="button"
