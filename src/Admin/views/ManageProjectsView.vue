@@ -201,12 +201,9 @@ function openView(project) {
 }
 
 function handleStart(project) {
-  const items = getStartBlockers(project)
-  if (items.length) {
-    blockers.value = { project, items }
-    return
-  }
-  confirmAction.value = { type: 'start', project }
+  // พาไปหน้าฟอร์มโครงการทันที เพื่อกรอกเอกสาร/ข้อมูล (ไม่ต้องยืนยันก่อน)
+  // การเปลี่ยนสถานะจริงทำผ่านปุ่ม "เริ่มดำเนินการ" ในฟอร์ม (เมื่อข้อมูลครบ)
+  router.push(`/admin/projects/${project.id}`)
 }
 
 function handleComplete(project) {

@@ -11,6 +11,7 @@ import {
   fetchProject,
   getStartBlockers,
   setProjectAgencies,
+  startProject,
   updateProjectCore,
   upsertProjectLocationBudget,
   upsertProjectPlan,
@@ -42,6 +43,10 @@ const saveError = ref('')
 let saveTimer = null
 
 const activeTab = ref('core')
+
+watch(activeTab, () => {
+  editingSection.value = null
+})
 
 const villages = ref([])
 const infraTypes = ref([])
@@ -150,6 +155,18 @@ const isLocked = computed(
 
 const readonly = computed(() => route.query.mode === 'view')
 const isReadOnly = computed(() => readonly.value || isLocked.value)
+
+const editingSection = ref(null)
+function startEdit(section) {
+  if (isLocked.value) return
+  editingSection.value = section
+}
+function cancelEdit() {
+  editingSection.value = null
+}
+function isEditing(section) {
+  return editingSection.value === section
+}
 
 // GPS paste input
 const gpsInput = ref('')
@@ -267,6 +284,7 @@ async function saveCore() {
       planYear: Number(coreForm.planYear),
     })
     await loadProject()
+    editingSection.value = null
     showSaveMessage('บันทึกข้อมูลโครงการเรียบร้อยแล้ว — ไปยังแท็บ 2')
     activeTab.value = 'location'
   } catch (err) {
@@ -289,8 +307,25 @@ async function saveLocation() {
       fundingSourceId: locationForm.fundingSourceId,
     })
     await loadProject()
+    editingSection.value = null
     showSaveMessage('บันทึกพื้นที่และงบประมาณเรียบร้อยแล้ว — ไปยังแท็บ 3')
     activeTab.value = 'plan'
+  } catch (err) {
+    showSaveMessage(err.message, true)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function handleStartFromForm() {
+  if (!project.value || isLocked.value) return
+  const items = getStartBlockers(project.value)
+  if (items.length) return
+  saving.value = true
+  try {
+    await startProject(projectId.value)
+    await loadProject()
+    showSaveMessage('เริ่มดำเนินการโครงการเรียบร้อยแล้ว')
   } catch (err) {
     showSaveMessage(err.message, true)
   } finally {
@@ -310,6 +345,7 @@ async function savePlan() {
     })
     await setProjectAgencies(projectId.value, planForm.agencyIds.map(Number))
     await loadProject()
+    editingSection.value = null
     showSaveMessage('บันทึกแผนการดำเนินงานเรียบร้อยแล้ว')
   } catch (err) {
     showSaveMessage(err.message, true)
@@ -432,7 +468,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
         v-if="readonly"
         class="mt-3 rounded-[8px] border border-[#BFC9C3]/70 bg-[#F1F4F2] px-4 py-2 text-[12px] text-[#505F76]"
       >
-        โหมดดูรายละเอียด — ข้อมูลอ่านอย่างเดียว ไม่สามารถแก้ไขได้
+        โหมดดูรายละเอียด — ข้อมูลอ่านอย่างเดียว กดไอคอนดินสอที่หัวมุมแท็บเพื่อแก้ไข
       </div>
 
       <!-- Tabs -->
@@ -455,10 +491,23 @@ const statusLabel = computed(() => project.value?.status ?? '')
 
       <!-- Tab 1: Core -->
       <div v-if="activeTab === 'core'" class="mt-4 rounded-[14px] border border-[#BFC9C3]/70 bg-white p-5">
-        <h2 class="text-[16px] font-semibold leading-[22px] text-[#181C1B]">ข้อมูลโครงการ</h2>
-        <p class="mt-1 text-[11px] leading-[17px] text-[#505F76]">
-          ข้อมูลหลักของโครงการ (แก้ไขได้เฉพาะเมื่อสถานะยังไม่เสร็จสิ้น/ยกเลิก)
-        </p>
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="text-[16px] font-semibold leading-[22px] text-[#181C1B]">ข้อมูลโครงการ</h2>
+            <p class="mt-1 text-[11px] leading-[17px] text-[#505F76]">
+              ข้อมูลหลักของโครงการ
+            </p>
+          </div>
+          <button
+            v-if="!isLocked && readonly && !isEditing('core')"
+            type="button"
+            class="flex h-8 w-8 items-center justify-center rounded-[7px] border border-[#BFC9C3] bg-white text-[#505F76] transition hover:bg-[#F1F4F2]"
+            aria-label="แก้ไข"
+            @click="startEdit('core')"
+          >
+            <AdminIcon name="edit" class="h-4 w-4" />
+          </button>
+        </div>
 
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
@@ -469,7 +518,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               v-model="coreForm.name"
               type="text"
               maxlength="200"
-              :disabled="isReadOnly"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -489,7 +538,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <div class="relative mt-1">
               <select
                 v-model="coreForm.infraTypeId"
-                :disabled="isReadOnly"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="h-11 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               >
                 <option value="">เลือกประเภท</option>
@@ -509,7 +558,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               v-model="coreForm.objective"
               rows="3"
               maxlength="1000"
-              :disabled="isReadOnly"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               class="mt-1 w-full resize-none rounded-[8px] border border-[#BFC9C3] bg-white px-3 py-2 text-[13px] leading-[19px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -521,7 +570,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <div class="relative mt-1">
               <select
                 v-model="coreForm.structureStatus"
-                :disabled="isReadOnly"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="h-11 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               >
                 <option value="">เลือกสถานะ</option>
@@ -542,17 +591,25 @@ const statusLabel = computed(() => project.value?.status ?? '')
               type="number"
               min="2400"
               max="2700"
-              :disabled="isReadOnly"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
         </div>
 
-        <div class="mt-4 flex justify-end">
+        <div class="mt-4 flex justify-end gap-2">
+          <button
+            v-if="isEditing('core')"
+            type="button"
+            class="h-9 rounded-[8px] border border-[#BFC9C3] bg-white px-4 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2]"
+            @click="cancelEdit"
+          >
+            ยกเลิก
+          </button>
           <button
             type="button"
             class="h-9 rounded-[8px] bg-[#1D5C48] px-5 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="saving || isLocked"
+            :disabled="saving || isLocked || (readonly && !isEditing('core'))"
             @click="saveCore"
           >
             {{ saving ? 'กำลังบันทึก…' : 'บันทึกแท็บ 1' }}
@@ -562,10 +619,23 @@ const statusLabel = computed(() => project.value?.status ?? '')
 
       <!-- Tab 2: Location & Budget -->
       <div v-else-if="activeTab === 'location'" class="mt-4 rounded-[14px] border border-[#BFC9C3]/70 bg-white p-5">
-        <h2 class="text-[16px] font-semibold leading-[22px] text-[#181C1B]">พื้นที่และงบประมาณ</h2>
-        <p class="mt-1 text-[11px] leading-[17px] text-[#505F76]">
-          ระบุพิกัด ที่ตั้ง วงเงิน ปีงบประมาณ และแหล่งเงิน (BR-08 ถึง BR-11)
-        </p>
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="text-[16px] font-semibold leading-[22px] text-[#181C1B]">พื้นที่และงบประมาณ</h2>
+            <p class="mt-1 text-[11px] leading-[17px] text-[#505F76]">
+              ระบุพิกัด ที่ตั้ง วงเงิน ปีงบประมาณ และแหล่งเงิน (BR-08 ถึง BR-11)
+            </p>
+          </div>
+          <button
+            v-if="!isLocked && readonly && !isEditing('location')"
+            type="button"
+            class="flex h-8 w-8 items-center justify-center rounded-[7px] border border-[#BFC9C3] bg-white text-[#505F76] transition hover:bg-[#F1F4F2]"
+            aria-label="แก้ไข"
+            @click="startEdit('location')"
+          >
+            <AdminIcon name="edit" class="h-4 w-4" />
+          </button>
+        </div>
 
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
@@ -574,14 +644,14 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="gpsInput"
                 type="text"
-                :disabled="isReadOnly"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 placeholder="เช่น 18.7883, 98.9853 หรือวางลิงก์ Google Maps"
                 class="h-11 flex-1 rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
               <button
                 type="button"
                 class="h-11 shrink-0 rounded-[8px] border border-[#BFC9C3] bg-white px-4 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2] disabled:opacity-50"
-                :disabled="isReadOnly"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 @click="applyGps"
               >
                 แปลงพิกัด
@@ -600,7 +670,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               v-model="locationForm.locationText"
               type="text"
               maxlength="500"
-              :disabled="isReadOnly"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               placeholder="เช่น ซอย 2 บ้านหลวง หมู่ 1"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
@@ -614,7 +684,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               type="number"
               min="0"
               step="0.01"
-              :disabled="isReadOnly"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -627,7 +697,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               type="number"
               min="2500"
               max="2700"
-              :disabled="isReadOnly"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -638,7 +708,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <div class="relative mt-1">
               <select
                 v-model="locationForm.fundingSourceId"
-                :disabled="isReadOnly"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="h-11 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               >
                 <option value="">เลือกแหล่งเงิน</option>
@@ -651,11 +721,19 @@ const statusLabel = computed(() => project.value?.status ?? '')
           </div>
         </div>
 
-        <div class="mt-4 flex justify-end">
+        <div class="mt-4 flex justify-end gap-2">
+          <button
+            v-if="isEditing('location')"
+            type="button"
+            class="h-9 rounded-[8px] border border-[#BFC9C3] bg-white px-4 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2]"
+            @click="cancelEdit"
+          >
+            ยกเลิก
+          </button>
           <button
             type="button"
             class="h-9 rounded-[8px] bg-[#1D5C48] px-5 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="saving || isLocked"
+            :disabled="saving || isLocked || (readonly && !isEditing('location'))"
             @click="saveLocation"
           >
             {{ saving ? 'กำลังบันทึก…' : 'บันทึกแท็บ 2' }}
@@ -665,12 +743,149 @@ const statusLabel = computed(() => project.value?.status ?? '')
 
       <!-- Tab 3: Plan, agencies, attachments, notes -->
       <div v-else class="mt-4 space-y-4">
-        <!-- Plan -->
+        <!-- Attachments (มาก่อนแผนการดำเนินงาน) -->
         <div class="rounded-[14px] border border-[#BFC9C3]/70 bg-white p-5">
-          <h2 class="text-[16px] font-semibold leading-[22px] text-[#181C1B]">แผนการดำเนินงาน</h2>
-          <p class="mt-1 text-[11px] leading-[17px] text-[#505F76]">
-            วันที่คาดว่าจะเริ่ม/สิ้นสุด และวันที่เริ่ม/สิ้นสุดจริง
-          </p>
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-[16px] font-semibold leading-[22px] text-[#181C1B]">เอกสารประกอบ</h2>
+              <p class="mt-1 text-[11px] leading-[17px] text-[#505F76]">
+                แนบไฟล์อย่างน้อย 1 ไฟล์ (BR-11) — ประเภทเอกสารเลือกจากรายการ
+              </p>
+            </div>
+            <button
+              v-if="!isLocked && readonly && !isEditing('plan')"
+              type="button"
+              class="flex h-8 w-8 items-center justify-center rounded-[7px] border border-[#BFC9C3] bg-white text-[#505F76] transition hover:bg-[#F1F4F2]"
+              aria-label="แก้ไข"
+              @click="startEdit('plan')"
+            >
+              <AdminIcon name="edit" class="h-4 w-4" />
+            </button>
+          </div>
+
+          <ul v-if="project.attachments?.length" class="mt-3 space-y-2">
+            <li
+              v-for="attachment in project.attachments"
+              :key="attachment.id"
+              class="flex items-center justify-between gap-2 rounded-[8px] border border-[#E3E8E5] bg-[#F8FAFC] px-3 py-2 text-[12px] text-[#181C1B]"
+            >
+              <div class="min-w-0">
+                <p class="truncate">{{ attachment.fileName }}</p>
+                <p class="text-[10px] text-[#707974]">{{ attachment.docTypeName }}</p>
+              </div>
+              <button
+                type="button"
+                class="shrink-0 rounded-[6px] border border-[#BFC9C3] bg-white px-2 py-1 text-[11px] text-[#181C1B] transition hover:bg-[#F1F4F2] disabled:opacity-50"
+                :disabled="previewLoading"
+                @click="openPreview(attachment)"
+              >
+                ดูตัวอย่าง
+              </button>
+            </li>
+          </ul>
+          <EmptyState v-else title="ยังไม่มีเอกสารแนบ" description="อัปโหลดไฟล์อย่างน้อย 1 ไฟล์ก่อนเริ่มดำเนินการ" />
+
+          <div v-if="!isLocked && (readonly ? isEditing('plan') : true)" class="mt-4 rounded-[10px] border-2 border-dashed border-[#BFC9C3] bg-[#F1F4F2]/40 p-4">
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label class="block text-[12px] font-medium text-[#181C1B]">ประเภทเอกสาร</label>
+                <div class="relative mt-1">
+                  <select
+                    v-model="attachmentForm.docTypeId"
+                    class="h-10 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[12px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
+                  >
+                    <option value="">เลือกประเภทเอกสาร</option>
+                    <option v-for="doc in docTypes" :key="doc.doc_type_id" :value="doc.doc_type_id">
+                      {{ doc.doc_type_name }}
+                    </option>
+                    <option v-if="!docTypes.length" value="" disabled>
+                      (ยังไม่มีประเภทเอกสาร — รัน supabase_doc_types.sql)
+                    </option>
+                  </select>
+                  <AdminIcon name="chevron-down" class="pointer-events-none absolute right-3 top-[10px] h-4 w-4 text-[#505F76]" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-[12px] font-medium text-[#181C1B]">ไฟล์</label>
+                <input
+                  type="file"
+                  class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
+                  :disabled="isLocked || (readonly && editingSection !== activeTab)"
+                  @change="onFileChange"
+                />
+              </div>
+            </div>
+            <p v-if="attachmentError" class="mt-2 text-[11px] text-red-700">{{ attachmentError }}</p>
+            <div class="mt-3 flex justify-end">
+              <button
+                type="button"
+                class="h-9 rounded-[8px] bg-[#1D5C48] px-4 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
+                :disabled="attachmentSaving || isLocked || (readonly && !isEditing('plan')) || !attachmentForm.file || !attachmentForm.docTypeId"
+                @click="submitAttachment"
+              >
+                {{ attachmentSaving ? 'กำลังอัปโหลด…' : 'อัปโหลดเอกสาร' }}
+              </button>
+            </div>
+
+            <!-- ภาพถ่ายสถานที่ (ไม่บังคับ) -->
+            <div class="mt-4 rounded-[10px] border border-[#E3E8E5] bg-[#F8FAFC] p-4">
+              <h3 class="text-[13px] font-semibold text-[#181C1B]">ภาพถ่ายสถานที่ (ไม่บังคับ)</h3>
+              <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label class="block text-[12px] font-medium text-[#181C1B]">ก่อนทำ</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
+                    :disabled="isLocked || (readonly && editingSection !== activeTab)"
+                    @change="(e) => (photoForm.before = e.target?.files?.[0] ?? null)"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[12px] font-medium text-[#181C1B]">หลังทำ</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
+                    :disabled="isLocked || (readonly && editingSection !== activeTab)"
+                    @change="(e) => (photoForm.after = e.target?.files?.[0] ?? null)"
+                  />
+                </div>
+              </div>
+              <p v-if="photoError" class="mt-2 text-[11px] text-red-700">{{ photoError }}</p>
+              <div class="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  class="h-9 rounded-[8px] bg-[#1D5C48] px-4 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="photoSaving || isLocked || (readonly && !isEditing('plan')) || (!photoForm.before && !photoForm.after)"
+                  @click="submitPhotos"
+                >
+                  {{ photoSaving ? 'กำลังอัปโหลด…' : 'อัปโหลดภาพถ่าย' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plan (หลังเอกสารประกอบ) -->
+        <div class="rounded-[14px] border border-[#BFC9C3]/70 bg-white p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-[16px] font-semibold leading-[22px] text-[#181C1B]">แผนการดำเนินงาน</h2>
+              <p class="mt-1 text-[11px] leading-[17px] text-[#505F76]">
+                วันที่คาดว่าจะเริ่ม/สิ้นสุด และวันที่เริ่ม/สิ้นสุดจริง
+              </p>
+            </div>
+            <button
+              v-if="!isLocked && readonly && !isEditing('plan')"
+              type="button"
+              class="flex h-8 w-8 items-center justify-center rounded-[7px] border border-[#BFC9C3] bg-white text-[#505F76] transition hover:bg-[#F1F4F2]"
+              aria-label="แก้ไข"
+              @click="startEdit('plan')"
+            >
+              <AdminIcon name="edit" class="h-4 w-4" />
+            </button>
+          </div>
 
           <div class="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
@@ -680,7 +895,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.plannedStart"
                 type="date"
-                :disabled="isReadOnly"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -691,7 +906,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.plannedEnd"
                 type="date"
-                :disabled="isReadOnly"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -700,7 +915,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.actualStart"
                 type="date"
-                :disabled="isReadOnly"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -709,7 +924,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.actualEnd"
                 type="date"
-                :disabled="isReadOnly"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -723,7 +938,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <button
                 type="button"
                 class="flex h-11 w-full items-center justify-between rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] transition hover:bg-[#F1F4F2] disabled:cursor-not-allowed disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
-                :disabled="isReadOnly"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 @click="agencyDropdownOpen = !agencyDropdownOpen"
               >
                 <span>
@@ -733,7 +948,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               </button>
 
               <div
-                v-if="agencyDropdownOpen && !isReadOnly"
+                v-if="agencyDropdownOpen && !isLocked && (readonly ? isEditing('plan') : true)"
                 class="absolute z-20 mt-1 max-h-[260px] w-full overflow-y-auto rounded-[8px] border border-[#BFC9C3] bg-white p-2 shadow-[0_8px_20px_rgba(15,23,42,0.12)]"
               >
                 <label
@@ -766,173 +981,39 @@ const statusLabel = computed(() => project.value?.status ?? '')
             </div>
           </div>
 
-          <div class="mt-4 flex justify-end">
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
             <button
               type="button"
               class="h-9 rounded-[8px] bg-[#1D5C48] px-5 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="saving || isLocked"
+              :disabled="saving || isLocked || (readonly && !isEditing('plan'))"
               @click="savePlan"
             >
               {{ saving ? 'กำลังบันทึก…' : 'บันทึกแท็บ 3 (แผน/หน่วยงาน)' }}
             </button>
+            <span v-if="blockers.length" class="text-[11px] text-[#8A6A00]">
+              กรอกข้อมูลให้ครบก่อนเริ่มดำเนินการ ({{ blockers.length }} รายการ)
+            </span>
+            <button
+              v-if="project.status === 'PENDING_APPROVAL'"
+              type="button"
+              class="h-9 rounded-[8px] bg-[#1D5C48] px-5 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
+              :disabled="saving || isLocked || blockers.length > 0"
+              @click="handleStartFromForm"
+            >
+              เริ่มดำเนินการ
+            </button>
+            <button
+              v-if="isEditing('plan')"
+              type="button"
+              class="h-9 rounded-[8px] border border-[#BFC9C3] bg-white px-4 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2]"
+              @click="cancelEdit"
+            >
+              ยกเลิก
+            </button>
           </div>
         </div>
 
-        <!-- Attachments -->
-        <div class="rounded-[14px] border border-[#BFC9C3]/70 bg-white p-5">
-          <h2 class="text-[16px] font-semibold leading-[22px] text-[#181C1B]">เอกสารประกอบ</h2>
-          <p class="mt-1 text-[11px] leading-[17px] text-[#505F76]">
-            แนบไฟล์อย่างน้อย 1 ไฟล์ (BR-11) — ประเภทเอกสารเลือกจากรายการ
-          </p>
-
-          <ul v-if="project.attachments?.length" class="mt-3 space-y-2">
-            <li
-              v-for="attachment in project.attachments"
-              :key="attachment.id"
-              class="flex items-center justify-between gap-2 rounded-[8px] border border-[#E3E8E5] bg-[#F8FAFC] px-3 py-2 text-[12px] text-[#181C1B]"
-            >
-              <div class="min-w-0">
-                <p class="truncate">{{ attachment.fileName }}</p>
-                <p class="text-[10px] text-[#707974]">{{ attachment.docTypeName }}</p>
-              </div>
-              <button
-                type="button"
-                class="shrink-0 rounded-[6px] border border-[#BFC9C3] bg-white px-2 py-1 text-[11px] text-[#181C1B] transition hover:bg-[#F1F4F2] disabled:opacity-50"
-                :disabled="previewLoading"
-                @click="openPreview(attachment)"
-              >
-                ดูตัวอย่าง
-              </button>
-            </li>
-          </ul>
-          <EmptyState v-else title="ยังไม่มีเอกสารแนบ" description="อัปโหลดไฟล์อย่างน้อย 1 ไฟล์ก่อนเริ่มดำเนินการ" />
-
-          <div v-if="!isReadOnly" class="mt-4 rounded-[10px] border-2 border-dashed border-[#BFC9C3] bg-[#F1F4F2]/40 p-4">
-            <div class="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label class="block text-[12px] font-medium text-[#181C1B]">ประเภทเอกสาร</label>
-                <div class="relative mt-1">
-                  <select
-                    v-model="attachmentForm.docTypeId"
-                    class="h-10 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[12px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
-                  >
-                    <option value="">เลือกประเภทเอกสาร</option>
-                    <option v-for="doc in docTypes" :key="doc.doc_type_id" :value="doc.doc_type_id">
-                      {{ doc.doc_type_name }}
-                    </option>
-                    <option v-if="!docTypes.length" value="" disabled>
-                      (ยังไม่มีประเภทเอกสาร — รัน supabase_doc_types.sql)
-                    </option>
-                  </select>
-                  <AdminIcon name="chevron-down" class="pointer-events-none absolute right-3 top-[10px] h-4 w-4 text-[#505F76]" />
-                </div>
-              </div>
-              <div>
-                <label class="block text-[12px] font-medium text-[#181C1B]">ไฟล์</label>
-                <input
-                  type="file"
-                  class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
-                  @change="onFileChange"
-                />
-              </div>
-            </div>
-            <p v-if="attachmentError" class="mt-2 text-[11px] text-red-700">{{ attachmentError }}</p>
-            <div class="mt-3 flex justify-end">
-              <button
-                type="button"
-                class="h-9 rounded-[8px] bg-[#1D5C48] px-4 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="attachmentSaving || !attachmentForm.file || !attachmentForm.docTypeId"
-                @click="submitAttachment"
-              >
-                {{ attachmentSaving ? 'กำลังอัปโหลด…' : 'อัปโหลดเอกสาร' }}
-              </button>
-            </div>
-
-            <!-- ภาพถ่ายสถานที่ (ไม่บังคับ) -->
-            <div class="mt-4 rounded-[10px] border border-[#E3E8E5] bg-[#F8FAFC] p-4">
-              <h3 class="text-[13px] font-semibold text-[#181C1B]">ภาพถ่ายสถานที่ (ไม่บังคับ)</h3>
-              <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label class="block text-[12px] font-medium text-[#181C1B]">ก่อนทำ</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
-                    :disabled="isReadOnly"
-                    @change="(e) => (photoForm.before = e.target?.files?.[0] ?? null)"
-                  />
-                </div>
-                <div>
-                  <label class="block text-[12px] font-medium text-[#181C1B]">หลังทำ</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
-                    :disabled="isReadOnly"
-                    @change="(e) => (photoForm.after = e.target?.files?.[0] ?? null)"
-                  />
-                </div>
-              </div>
-              <p v-if="photoError" class="mt-2 text-[11px] text-red-700">{{ photoError }}</p>
-              <div class="mt-3 flex justify-end">
-                <button
-                  type="button"
-                  class="h-9 rounded-[8px] bg-[#1D5C48] px-4 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-                  :disabled="photoSaving || isReadOnly || (!photoForm.before && !photoForm.after)"
-                  @click="submitPhotos"
-                >
-                  {{ photoSaving ? 'กำลังอัปโหลด…' : 'อัปโหลดภาพถ่าย' }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Notes -->
-        <div class="rounded-[14px] border border-[#BFC9C3]/70 bg-white p-5">
-          <h2 class="text-[16px] font-semibold leading-[22px] text-[#181C1B]">หมายเหตุ (เพิ่มได้อย่างเดียว)</h2>
-          <p class="mt-1 text-[11px] leading-[17px] text-[#505F76]">
-            เพิ่มได้อย่างเดียว ไม่สามารถแก้ไขหรือลบ (BR-12)
-          </p>
-
-          <ul v-if="project.notes?.length" class="mt-3 space-y-2">
-            <li
-              v-for="note in project.notes"
-              :key="note.id"
-              class="rounded-[8px] border border-[#E3E8E5] bg-[#F8FAFC] px-3 py-2 text-[12px] text-[#181C1B]"
-            >
-              <div class="text-[10px] text-[#707974]">
-                {{ formatThaiDate(note.createdAt) }}
-              </div>
-              <p class="mt-1 whitespace-pre-wrap">{{ note.content }}</p>
-            </li>
-          </ul>
-          <EmptyState v-else title="ยังไม่มีหมายเหตุ" description="เพิ่มหมายเหตุเพื่อติดตามความคืบหน้า" />
-
-          <div v-if="!isReadOnly" class="mt-4 rounded-[10px] border border-[#BFC9C3]/70 bg-[#F8FAFC] p-4">
-            <div>
-              <label class="block text-[12px] font-medium text-[#181C1B]">เนื้อหาหมายเหตุ</label>
-              <textarea
-                v-model="noteForm.content"
-                rows="3"
-                maxlength="2000"
-                class="mt-1 w-full resize-none rounded-[8px] border border-[#BFC9C3] bg-white px-3 py-2 text-[12px] leading-[18px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10"
-              />
-            </div>
-            <p v-if="noteError" class="mt-2 text-[11px] text-red-700">{{ noteError }}</p>
-            <div class="mt-3 flex justify-end">
-              <button
-                type="button"
-                class="h-9 rounded-[8px] bg-[#1D5C48] px-4 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="noteSaving || !noteForm.content.trim()"
-                @click="submitNote"
-              >
-                {{ noteSaving ? 'กำลังบันทึก…' : 'เพิ่มหมายเหตุ' }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Blockers summary -->
+        <!-- Blockers summary -->
           <div v-if="blockers.length" class="rounded-[14px] border border-[#FDF6D8] bg-[#FDF6D8]/60 p-5">
             <h3 class="text-[13px] font-semibold text-[#8A6A00]">ข้อมูลที่ยังไม่ครบก่อนเริ่มดำเนินการ</h3>
             <ul class="mt-2 space-y-1 text-[12px] leading-[18px] text-[#8A6A00]">
@@ -943,7 +1024,6 @@ const statusLabel = computed(() => project.value?.status ?? '')
             </ul>
           </div>
         </div>
-      </div>
     </template>
 
     <EmptyState v-else title="ไม่พบโครงการ" description="โครงการนี้อาจถูกลบหรือไม่มีอยู่" />
