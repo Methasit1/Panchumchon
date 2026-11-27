@@ -979,6 +979,17 @@ const statusLabel = computed(() => project.value?.status ?? '')
 
           <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
             <button
+              type="button"
+              class="h-9 rounded-[8px] bg-[#1D5C48] px-5 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
+              :disabled="saving || isReadOnly || !isEditing('plan')"
+              @click="savePlan"
+            >
+              {{ saving ? 'กำลังบันทึก…' : 'บันทึกแท็บ 3 (แผน/หน่วยงาน)' }}
+            </button>
+            <span v-if="blockers.length" class="text-[11px] text-[#8A6A00]">
+              กรอกข้อมูลให้ครบก่อนเริ่มดำเนินการ ({{ blockers.length }} รายการ)
+            </span>
+            <button
               v-if="project.status === 'PENDING_APPROVAL'"
               type="button"
               class="h-9 rounded-[8px] bg-[#1D5C48] px-5 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
@@ -987,27 +998,14 @@ const statusLabel = computed(() => project.value?.status ?? '')
             >
               เริ่มดำเนินการ
             </button>
-            <span v-if="blockers.length" class="text-[11px] text-[#8A6A00]">
-              กรอกข้อมูลให้ครบก่อนเริ่มดำเนินการ ({{ blockers.length }} รายการ)
-            </span>
-            <div class="ml-auto flex gap-2">
-              <button
-                v-if="isEditing('plan')"
-                type="button"
-                class="h-9 rounded-[8px] border border-[#BFC9C3] bg-white px-4 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2]"
-                @click="cancelEdit"
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="button"
-                class="h-9 rounded-[8px] bg-[#1D5C48] px-5 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="saving || isReadOnly || !isEditing('plan')"
-                @click="savePlan"
-              >
-                {{ saving ? 'กำลังบันทึก…' : 'บันทึกแท็บ 3 (แผน/หน่วยงาน)' }}
-              </button>
-            </div>
+            <button
+              v-if="isEditing('plan')"
+              type="button"
+              class="h-9 rounded-[8px] border border-[#BFC9C3] bg-white px-4 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2]"
+              @click="cancelEdit"
+            >
+              ยกเลิก
+            </button>
           </div>
         </div>
 
