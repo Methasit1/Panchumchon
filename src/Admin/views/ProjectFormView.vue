@@ -44,6 +44,10 @@ let saveTimer = null
 
 const activeTab = ref('core')
 
+watch(activeTab, () => {
+  editingSection.value = null
+})
+
 const villages = ref([])
 const infraTypes = ref([])
 const agencies = ref([])
@@ -464,7 +468,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
         v-if="readonly"
         class="mt-3 rounded-[8px] border border-[#BFC9C3]/70 bg-[#F1F4F2] px-4 py-2 text-[12px] text-[#505F76]"
       >
-        โหมดดูรายละเอียด — ข้อมูลอ่านอย่างเดียว ไม่สามารถแก้ไขได้
+        โหมดดูรายละเอียด — ข้อมูลอ่านอย่างเดียว กดไอคอนดินสอที่หัวมุมแท็บเพื่อแก้ไข
       </div>
 
       <!-- Tabs -->
@@ -495,7 +499,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             </p>
           </div>
           <button
-            v-if="!isLocked && !isEditing('core')"
+            v-if="!isLocked && readonly && !isEditing('core')"
             type="button"
             class="flex h-8 w-8 items-center justify-center rounded-[7px] border border-[#BFC9C3] bg-white text-[#505F76] transition hover:bg-[#F1F4F2]"
             aria-label="แก้ไข"
@@ -514,7 +518,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               v-model="coreForm.name"
               type="text"
               maxlength="200"
-              :disabled="isReadOnly || editingSection !== activeTab"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -534,7 +538,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <div class="relative mt-1">
               <select
                 v-model="coreForm.infraTypeId"
-                :disabled="isReadOnly || editingSection !== activeTab"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="h-11 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               >
                 <option value="">เลือกประเภท</option>
@@ -554,7 +558,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               v-model="coreForm.objective"
               rows="3"
               maxlength="1000"
-              :disabled="isReadOnly || editingSection !== activeTab"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               class="mt-1 w-full resize-none rounded-[8px] border border-[#BFC9C3] bg-white px-3 py-2 text-[13px] leading-[19px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -566,7 +570,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <div class="relative mt-1">
               <select
                 v-model="coreForm.structureStatus"
-                :disabled="isReadOnly || editingSection !== activeTab"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="h-11 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               >
                 <option value="">เลือกสถานะ</option>
@@ -587,7 +591,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               type="number"
               min="2400"
               max="2700"
-              :disabled="isReadOnly || editingSection !== activeTab"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -605,7 +609,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
           <button
             type="button"
             class="h-9 rounded-[8px] bg-[#1D5C48] px-5 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="saving || isReadOnly || !isEditing('core')"
+            :disabled="saving || isLocked || (readonly && !isEditing('core'))"
             @click="saveCore"
           >
             {{ saving ? 'กำลังบันทึก…' : 'บันทึกแท็บ 1' }}
@@ -623,7 +627,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             </p>
           </div>
           <button
-            v-if="!isLocked && !isEditing('location')"
+            v-if="!isLocked && readonly && !isEditing('location')"
             type="button"
             class="flex h-8 w-8 items-center justify-center rounded-[7px] border border-[#BFC9C3] bg-white text-[#505F76] transition hover:bg-[#F1F4F2]"
             aria-label="แก้ไข"
@@ -640,14 +644,14 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="gpsInput"
                 type="text"
-                :disabled="isReadOnly || editingSection !== activeTab"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 placeholder="เช่น 18.7883, 98.9853 หรือวางลิงก์ Google Maps"
                 class="h-11 flex-1 rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
               <button
                 type="button"
                 class="h-11 shrink-0 rounded-[8px] border border-[#BFC9C3] bg-white px-4 text-[12px] text-[#181C1B] transition hover:bg-[#F1F4F2] disabled:opacity-50"
-                :disabled="isReadOnly || editingSection !== activeTab"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 @click="applyGps"
               >
                 แปลงพิกัด
@@ -666,7 +670,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               v-model="locationForm.locationText"
               type="text"
               maxlength="500"
-              :disabled="isReadOnly || editingSection !== activeTab"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               placeholder="เช่น ซอย 2 บ้านหลวง หมู่ 1"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none placeholder:text-[#707974] focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
@@ -680,7 +684,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               type="number"
               min="0"
               step="0.01"
-              :disabled="isReadOnly || editingSection !== activeTab"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -693,7 +697,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               type="number"
               min="2500"
               max="2700"
-              :disabled="isReadOnly || editingSection !== activeTab"
+              :disabled="isLocked || (readonly && editingSection !== activeTab)"
               class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
             />
           </div>
@@ -704,7 +708,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <div class="relative mt-1">
               <select
                 v-model="locationForm.fundingSourceId"
-                :disabled="isReadOnly || editingSection !== activeTab"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="h-11 w-full appearance-none rounded-[8px] border border-[#BFC9C3] bg-white pl-3 pr-8 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               >
                 <option value="">เลือกแหล่งเงิน</option>
@@ -729,7 +733,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
           <button
             type="button"
             class="h-9 rounded-[8px] bg-[#1D5C48] px-5 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="saving || isReadOnly || !isEditing('location')"
+            :disabled="saving || isLocked || (readonly && !isEditing('location'))"
             @click="saveLocation"
           >
             {{ saving ? 'กำลังบันทึก…' : 'บันทึกแท็บ 2' }}
@@ -749,7 +753,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               </p>
             </div>
             <button
-              v-if="!isLocked && !isEditing('plan')"
+              v-if="!isLocked && readonly && !isEditing('plan')"
               type="button"
               class="flex h-8 w-8 items-center justify-center rounded-[7px] border border-[#BFC9C3] bg-white text-[#505F76] transition hover:bg-[#F1F4F2]"
               aria-label="แก้ไข"
@@ -781,7 +785,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
           </ul>
           <EmptyState v-else title="ยังไม่มีเอกสารแนบ" description="อัปโหลดไฟล์อย่างน้อย 1 ไฟล์ก่อนเริ่มดำเนินการ" />
 
-          <div v-if="!isReadOnly && isEditing('plan')" class="mt-4 rounded-[10px] border-2 border-dashed border-[#BFC9C3] bg-[#F1F4F2]/40 p-4">
+          <div v-if="!isLocked && (readonly ? isEditing('plan') : true)" class="mt-4 rounded-[10px] border-2 border-dashed border-[#BFC9C3] bg-[#F1F4F2]/40 p-4">
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
                 <label class="block text-[12px] font-medium text-[#181C1B]">ประเภทเอกสาร</label>
@@ -806,7 +810,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
                 <input
                   type="file"
                   class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
-                  :disabled="isReadOnly || editingSection !== activeTab"
+                  :disabled="isLocked || (readonly && editingSection !== activeTab)"
                   @change="onFileChange"
                 />
               </div>
@@ -816,7 +820,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <button
                 type="button"
                 class="h-9 rounded-[8px] bg-[#1D5C48] px-4 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="attachmentSaving || !attachmentForm.file || !attachmentForm.docTypeId"
+                :disabled="attachmentSaving || isLocked || (readonly && !isEditing('plan')) || !attachmentForm.file || !attachmentForm.docTypeId"
                 @click="submitAttachment"
               >
                 {{ attachmentSaving ? 'กำลังอัปโหลด…' : 'อัปโหลดเอกสาร' }}
@@ -833,7 +837,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
                     type="file"
                     accept="image/*"
                     class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
-                    :disabled="isReadOnly || editingSection !== activeTab"
+                    :disabled="isLocked || (readonly && editingSection !== activeTab)"
                     @change="(e) => (photoForm.before = e.target?.files?.[0] ?? null)"
                   />
                 </div>
@@ -843,7 +847,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
                     type="file"
                     accept="image/*"
                     class="mt-1 block w-full text-[12px] text-[#505F76] file:mr-2 file:rounded-[6px] file:border-0 file:bg-[#1D5C48] file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-white hover:file:bg-[#174C3B]"
-                    :disabled="isReadOnly || editingSection !== activeTab"
+                    :disabled="isLocked || (readonly && editingSection !== activeTab)"
                     @change="(e) => (photoForm.after = e.target?.files?.[0] ?? null)"
                   />
                 </div>
@@ -853,7 +857,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
                 <button
                   type="button"
                   class="h-9 rounded-[8px] bg-[#1D5C48] px-4 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-                  :disabled="photoSaving || !photoForm.before && !photoForm.after"
+                  :disabled="photoSaving || isLocked || (readonly && !isEditing('plan')) || (!photoForm.before && !photoForm.after)"
                   @click="submitPhotos"
                 >
                   {{ photoSaving ? 'กำลังอัปโหลด…' : 'อัปโหลดภาพถ่าย' }}
@@ -873,7 +877,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               </p>
             </div>
             <button
-              v-if="!isLocked && !isEditing('plan')"
+              v-if="!isLocked && readonly && !isEditing('plan')"
               type="button"
               class="flex h-8 w-8 items-center justify-center rounded-[7px] border border-[#BFC9C3] bg-white text-[#505F76] transition hover:bg-[#F1F4F2]"
               aria-label="แก้ไข"
@@ -891,7 +895,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.plannedStart"
                 type="date"
-                :disabled="isReadOnly || editingSection !== activeTab"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -902,7 +906,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.plannedEnd"
                 type="date"
-                :disabled="isReadOnly || editingSection !== activeTab"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -911,7 +915,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.actualStart"
                 type="date"
-                :disabled="isReadOnly || editingSection !== activeTab"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -920,7 +924,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <input
                 v-model="planForm.actualEnd"
                 type="date"
-                :disabled="isReadOnly || editingSection !== activeTab"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 class="mt-1 h-11 w-full rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] outline-none focus:border-[#1D5C48] focus:ring-2 focus:ring-[#1D5C48]/10 disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
               />
             </div>
@@ -934,7 +938,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               <button
                 type="button"
                 class="flex h-11 w-full items-center justify-between rounded-[8px] border border-[#BFC9C3] bg-white px-3 text-[13px] text-[#181C1B] transition hover:bg-[#F1F4F2] disabled:cursor-not-allowed disabled:bg-[#F8FAFC] disabled:text-[#9AA5A0]"
-                :disabled="isReadOnly || editingSection !== activeTab"
+                :disabled="isLocked || (readonly && editingSection !== activeTab)"
                 @click="agencyDropdownOpen = !agencyDropdownOpen"
               >
                 <span>
@@ -944,7 +948,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
               </button>
 
               <div
-                v-if="agencyDropdownOpen && !isReadOnly && isEditing('plan')"
+                v-if="agencyDropdownOpen && !isLocked && (readonly ? isEditing('plan') : true)"
                 class="absolute z-20 mt-1 max-h-[260px] w-full overflow-y-auto rounded-[8px] border border-[#BFC9C3] bg-white p-2 shadow-[0_8px_20px_rgba(15,23,42,0.12)]"
               >
                 <label
@@ -981,7 +985,7 @@ const statusLabel = computed(() => project.value?.status ?? '')
             <button
               type="button"
               class="h-9 rounded-[8px] bg-[#1D5C48] px-5 text-[12px] font-medium text-white transition hover:bg-[#174C3B] disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="saving || isReadOnly || !isEditing('plan')"
+              :disabled="saving || isLocked || (readonly && !isEditing('plan'))"
               @click="savePlan"
             >
               {{ saving ? 'กำลังบันทึก…' : 'บันทึกแท็บ 3 (แผน/หน่วยงาน)' }}
