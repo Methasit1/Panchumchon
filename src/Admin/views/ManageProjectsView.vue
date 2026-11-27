@@ -203,7 +203,8 @@ function openView(project) {
 function handleStart(project) {
   const items = getStartBlockers(project)
   if (items.length) {
-    blockers.value = { project, items }
+    // ข้อมูลยังไม่ครบ → พาไปหน้าฟอร์มโครงการทันที (ไม่ต้องแจ้งก่อน)
+    router.push(`/admin/projects/${project.id}`)
     return
   }
   confirmAction.value = { type: 'start', project }
